@@ -1,0 +1,39 @@
+{
+  "name": "fuge",
+  "description": "microservices manager",
+  "keywords": [
+    "fuge",
+    "microservices",
+    "manager",
+    "generator"
+  ],
+  "version": "0.1.0",
+  "license": "MITL",
+  "author": "Peter Elger (http://nearform.com/)",
+  "contributors": [
+    "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)"
+  ],
+  "main": "./index.js",
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "commist": "^1.0.0",
+    "yeoman-environment": "^1.2.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pelger/canonical-node.git"
+  },
+  "scripts": {
+    "lint": "jshint **/*.js",
+    "test": "jshint **/*.js && node test/*Test.js",
+    "coverage": "istanbul cover test/*Test.js && open ./coverage/lcov-report/index.html",
+    "coverage-check": "istanbul cover test/*Test.js && istanbul check-coverage",
+    "commit-check": "jshint **/*.js && istanbul cover test/*Test.js && istanbul check-coverage"
+  },
+  "devDependencies": {
+    "pre-commit": "^1.1.1",
+    "tape": "^4.2.0"
+  }
+}
