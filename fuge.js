@@ -17,7 +17,7 @@
 
 var fs = require('fs');
 var program = require('commist')();
-var xeno = require('xeno')();
+var xeno = require('xenotype')();
 var runner = require('fuge-runner')();
 var gen = require('./fuge-generator')();
 
@@ -32,18 +32,9 @@ var generateSystem = function(args) {
 
 
 
-var generateFrontend = function(args) {
-  gen.init(function() {
-    gen.generateFrontend(args, function() {
-    });
-  });
-};
-
-
-
 var generateService = function(args) {
   gen.init(function() {
-    gen.generateService(args, function() {
+    gen.generateService(args, true, function() {
     });
   });
 };
@@ -68,7 +59,6 @@ var runSystem = function(args) {
 
 
 program.register('generate system', generateSystem);
-program.register('generate frontend', generateFrontend);
 program.register('generate service', generateService);
 program.register('run', runSystem);
 

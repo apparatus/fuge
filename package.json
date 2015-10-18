@@ -7,30 +7,36 @@
     "manager",
     "generator"
   ],
-  "version": "0.1.0",
+  "version": "0.1.5",
   "license": "MITL",
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
     "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)"
   ],
-  "main": "./index.js",
+  "main": "./fuge.js",
   "engines": {
     "node": "*"
   },
   "dependencies": {
     "commist": "^1.0.0",
+    "fuge-runner": "^0.1.1",
+    "xenotype": "^0.1.1",
     "yeoman-environment": "^1.2.7"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/pelger/canonical-node.git"
   },
+  "bin": {
+    "fuge": "./fuge.js"
+  },
   "scripts": {
     "lint": "jshint **/*.js",
     "test": "jshint **/*.js && node test/*Test.js",
     "coverage": "istanbul cover test/*Test.js && open ./coverage/lcov-report/index.html",
     "coverage-check": "istanbul cover test/*Test.js && istanbul check-coverage",
-    "commit-check": "jshint **/*.js && istanbul cover test/*Test.js && istanbul check-coverage"
+    "commit-check": "jshint **/*.js && istanbul cover test/*Test.js && istanbul check-coverage",
+    "preinstall": "npm install generator-hapi-seneca && npm install generator-seneca-http && npm install generator-microbial"
   },
   "devDependencies": {
     "pre-commit": "^1.1.1",
