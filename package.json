@@ -7,8 +7,8 @@
     "manager",
     "generator"
   ],
-  "version": "0.1.5",
-  "license": "MITL",
+  "version": "0.1.7",
+  "license": "MIT",
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
     "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)"
@@ -19,8 +19,8 @@
   },
   "dependencies": {
     "commist": "^1.0.0",
-    "fuge-runner": "^0.1.1",
-    "xenotype": "^0.1.1",
+    "fuge-runner": "^0.1.3",
+    "xenotype": "^0.1.2",
     "yeoman-environment": "^1.2.7"
   },
   "repository": {
