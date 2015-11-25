@@ -40,6 +40,7 @@
     "test": "jshint **/*.js && node test/*Test.js",
     "coverage": "istanbul cover test/*Test.js && open ./coverage/lcov-report/index.html",
     "coverage-check": "istanbul cover test/*Test.js && istanbul check-coverage",
+    "commit-check": "jshint **/*.js",
     "preinstall": "npm install generator-hapi-seneca && npm install generator-seneca-http && npm install generator-microbial"
   },
   "devDependencies": {
