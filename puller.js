@@ -14,17 +14,33 @@
 
 'use strict';
 
-var test = require('tape');
-//var fuge = require('../fuge.js');
+var fs = require('fs');
+var runner = require('fuge-runner')();
+var xeno = require('xenotype')();
 
 
-test('run test', function(t) {
-  t.plan(1);
 
-  /*
-  fuge(['generate', 'system'], function(err) {
-    t.equal(err, null);
-  });
-  */
-});
+module.exports = function() {
+
+  var pullSystem = function(args) {
+    var yamlPath = args[0] || process.cwd() + '/docker-compose.yml';
+
+    if (!fs.existsSync(yamlPath)) {
+      return console.log('path not found: ' + yamlPath);
+    }
+
+    xeno.compile(yamlPath, function(err, system) {
+      if (err) { return console.log(err); }
+      runner.pull(system, function(err) {
+        if (err) { return console.log(err); }
+      });
+    });
+  };
+
+
+
+  return {
+    pullSystem: pullSystem
+  };
+};
 

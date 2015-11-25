@@ -14,17 +14,32 @@
 
 'use strict';
 
-var test = require('tape');
-//var fuge = require('../fuge.js');
+var _ = require('lodash');
+var runner;
 
 
-test('run test', function(t) {
-  t.plan(1);
+module.exports = function() {
 
-  /*
-  fuge(['generate', 'system'], function(err) {
-    t.equal(err, null);
-  });
-  */
-});
+  var previewSystem = function(system, config) {
+    runner = require('fuge-runner')(config);
+    runner.previewAll(system, function(err, result) {
+      if (err) { return console.log(err); }
+      _.each(result, function(command) {
+        var env = '';
+        console.log('executing: ' + command.detail.cmd);
+        console.log('  in directory: ' + command.detail.cwd);
+        _.each(_.keys(command.detail.environment), function(key) {
+          env += '    ' + key + '=' + command.detail.environment[key] + '\n';
+        });
+        console.log('  with environment:\n' + env);
+      });
+    });
+  };
+
+
+
+  return {
+    previewSystem: previewSystem
+  };
+};
 

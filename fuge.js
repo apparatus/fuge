@@ -15,11 +15,13 @@
 
 'use strict';
 
-var fs = require('fs');
 var program = require('commist')();
-var xeno = require('xenotype')();
-var runner = require('fuge-runner')();
-var gen = require('./fuge-generator')();
+var puller = require('./puller')();
+var builder = require('./builder')();
+var previewer = require('./previewer')();
+var gen = require('./generator')();
+var shell = require('./shell')();
+var util = require('./util')();
 
 
 
@@ -41,18 +43,43 @@ var generateService = function(args) {
 
 
 
+var buildSystem = function(args) {
+  builder.buildSystem(args);
+};
+
+
+
+var pullSystem = function(args) {
+  puller.pullSystem(args);
+};
+
+
+
 var runSystem = function(args) {
-  var yamlPath = args[0] || process.cwd() + '/docker-compose.yml';
-
-  if (!fs.existsSync(yamlPath)) {
-    return console.log('path not found: ' + yamlPath);
-  }
-
-  xeno.compile(yamlPath, function(err, system) {
+  console.log('compiling...');
+  util.compile(args, function(err, system, config) {
     if (err) { return console.log(err); }
-      runner.start(system, function(err) {
-        if (err) { return console.log(err); }
-    });
+    shell.runSingleCommand(system, config, 'start all');
+  });
+};
+
+
+
+var runShell = function(args) {
+  console.log('compiling...');
+  util.compile(args, function(err, system, config) {
+    if (err) { return console.log(err); }
+    shell.run(system, config);
+  });
+};
+
+
+
+var previewSystem = function(args) {
+  console.log('compiling...');
+  util.compile(args, function(err, system, config) {
+    if (err) { return console.log(err); }
+    previewer.previewSystem(system, config);
   });
 };
 
@@ -60,7 +87,11 @@ var runSystem = function(args) {
 
 program.register('generate system', generateSystem);
 program.register('generate service', generateService);
+program.register('build', buildSystem);
+program.register('pull', pullSystem);
 program.register('run', runSystem);
+program.register('preview', previewSystem);
+program.register('shell', runShell);
 
 
 
@@ -77,4 +108,5 @@ module.exports = start;
 if (require.main === module) {
   start(process.argv.slice(2));
 }
+
 
