@@ -16,8 +16,7 @@
 'use strict';
 
 var program = require('commist')();
-var puller = require('./puller')();
-var builder = require('./builder')();
+var runner = require('./runner')();
 var previewer = require('./previewer')();
 var gen = require('./generator')();
 var shell = require('./shell')();
@@ -44,13 +43,23 @@ var generateService = function(args) {
 
 
 var buildSystem = function(args) {
-  builder.buildSystem(args);
+  console.log('building...');
+  util.compile(args, function(err, system, config) {
+    runner.buildSystem(system, config, function(err) {
+      if (err) { return console.log(err); }
+    });
+  });
 };
 
 
 
 var pullSystem = function(args) {
-  puller.pullSystem(args);
+  console.log('pulling...');
+  util.compile(args, function(err, system, config) {
+    runner.pullSystem(system, config, function(err) {
+      if (err) { return console.log(err); }
+    });
+  });
 };
 
 

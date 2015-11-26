@@ -31,8 +31,13 @@ module.exports = function() {
           console.log('overriding run command for: ' + container.name + ' to: ' + config.overrides[container.name].run);
           container.specific.execute.exec = config.overrides[container.name].run;
         }
-      }
       
+        if (config.overrides[container.name].build) {
+          console.log('overriding build command for: ' + container.name + ' to: ' + config.overrides[container.name].build);
+          container.specific.buildScript = config.overrides[container.name].build;
+        }
+      }
+
       if (config && config.tail) {
         container.tail = true;
       }

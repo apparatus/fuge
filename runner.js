@@ -38,8 +38,28 @@ module.exports = function() {
 
 
 
+  var buildSystem = function(system, config, cb) {
+    runner = require('fuge-runner')(config);
+    runner.buildAll(system, function(err) {
+      cb(err);
+    });
+  };
+
+
+
+  var pullSystem = function(system, config, cb) {
+    runner = require('fuge-runner')(config);
+    runner.pullAll(system, function(err) {
+      cb(err);
+    });
+  };
+
+
+
   return {
-    previewSystem: previewSystem
+    previewSystem: previewSystem,
+    buildSystem: buildSystem,
+    pullSystem: pullSystem
   };
 };
 

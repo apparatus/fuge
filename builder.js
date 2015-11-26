@@ -38,7 +38,8 @@ module.exports = function() {
 
 
 
-  var buildSystem = function(args) {
+  var buildSystem = function(system, config) {
+    /*
     var yamlPath = args[0] || process.cwd() + '/docker-compose.yml';
     var overridePath = (path.dirname(args[0]) || process.cwd()) + '/fuge-config.js';
     var overrides = {};
@@ -53,8 +54,8 @@ module.exports = function() {
 
     xeno.compile(yamlPath, function(err, system) {
       if (err) { return console.log(err); }
-      applyOverrides(system, overrides);
-      runner.build(system, function(err) {
+      */
+    runner.build(system, function(err) {
         if (err) { return console.log(err); }
       });
     });
