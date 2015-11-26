@@ -7,7 +7,7 @@
     "manager",
     "generator"
   ],
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
@@ -23,7 +23,7 @@
     "commist": "^1.0.0",
     "death": "^1.0.0",
     "fuge-runner": "^0.2.0",
-    "fuge-proxy": "^0.2.0",
+    "fuge-proxy": "^0.2.1",
     "inquirer": "^0.11.0",
     "lodash": "^3.10.1",
     "xenotype": "^0.2.0",
