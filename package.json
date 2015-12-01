@@ -48,12 +48,13 @@
   },
   "scripts": {
     "lint": "jshint **/*.js",
-    "test": "jshint **/*.js && node test/*Test.js",
+    "test": "jshint **/*.js && node test",
     "coverage": "istanbul cover test/*Test.js && open ./coverage/lcov-report/index.html",
     "coverage-check": "istanbul cover test/*Test.js && istanbul check-coverage",
     "commit-check": "jshint **/*.js"
   },
   "devDependencies": {
+    "del": "^2.1.0",
     "jshint": "^2.9.1-rc1",
     "pre-commit": "^1.1.1",
     "tape": "^4.2.0"
