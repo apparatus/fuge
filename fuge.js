@@ -17,7 +17,6 @@
 
 var program = require('commist')();
 var runner = require('./runner')();
-var previewer = require('./previewer')();
 var gen = require('./generator')();
 var shell = require('./shell')();
 var util = require('./util')();
@@ -88,7 +87,7 @@ var previewSystem = function(args) {
   console.log('compiling...');
   util.compile(args, function(err, system, config) {
     if (err) { return console.log(err); }
-    previewer.previewSystem(system, config);
+    runner.previewSystem(system, config);
   });
 };
 
