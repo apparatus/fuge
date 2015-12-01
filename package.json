@@ -18,14 +18,24 @@
     "node": "*"
   },
   "dependencies": {
+    "chalk": "^1.1.1",
     "cli-table": "^0.3.1",
     "colors": "^1.1.2",
     "commist": "^1.0.0",
     "death": "^1.0.0",
+    "fastseries": "^1.7.0",
+    "fuge-proxy": "^0.2.0",
     "fuge-runner": "^0.2.0",
-    "fuge-proxy": "^0.2.1",
+    "generator-fuge": "^0.1.1",
+    "generator-hapi-seneca": "^0.1.0",
+    "generator-seneca-http": "^0.1.0",
+    "generator-seneca-redis": "0.0.1",
+    "incite": "^1.1.1",
     "inquirer": "^0.11.0",
     "lodash": "^3.10.1",
+    "minimist": "^1.2.0",
+    "ordinal": "0.0.2",
+    "positive": "^1.0.4",
     "xenotype": "^0.2.0",
     "yeoman-environment": "^1.2.7"
   },
@@ -41,10 +51,10 @@
     "test": "jshint **/*.js && node test/*Test.js",
     "coverage": "istanbul cover test/*Test.js && open ./coverage/lcov-report/index.html",
     "coverage-check": "istanbul cover test/*Test.js && istanbul check-coverage",
-    "commit-check": "jshint **/*.js",
-    "preinstall": "npm install generator-hapi-seneca && npm install generator-seneca-http && npm install generator-microbial"
+    "commit-check": "jshint **/*.js"
   },
   "devDependencies": {
+    "jshint": "^2.9.1-rc1",
     "pre-commit": "^1.1.1",
     "tape": "^4.2.0"
   }
