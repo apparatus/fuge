@@ -1,3 +1,5 @@
+![fuge-logo](./assets/fuge-logo.png)
+
 # fuge
 [![Gitter][gitter-badge]][gitter-url]
 
