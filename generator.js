@@ -20,69 +20,39 @@ var yeoman = require('yeoman-environment');
 var prompt = require('incite');
 var ask = require('positive');
 var ord = require('ordinal').english;
-var fastseries = require('fastseries')({results: false});
- 
+var util = require('./util')();
+
+var generators = Object.keys(require('./package.json').dependencies)
+  .filter(function (dep) { return /generator-/.test(dep)})
+  .map(function(gen) { return gen.replace(/generator-/, '') });
+
 var NONE = 0;
 var LOW = 1;
 var MEDIUM = 2;
 var HIGH = 3;
 
-var GENERATORS = ['fuge', 'seneca-http', 'seneca-redis', 'hapi-seneca']
-
-function gen(name) {
-  return require.resolve(
-    path.join(__dirname, 'node_modules', 'generator-' + name, 'generators', 'app', 'index.js')
-  );
-}
-
-function series(list, cb) {
-  return fastseries({}, list, undefined, cb);
-}
-
-function run(env, gen, cb) {
-  var cwd = process.cwd()
-  if (env.cwd) { process.chdir(env.cwd) }
-
-  env.run(gen, function (err) {
-    process.chdir(cwd)
-    cb(err)
-  })
-
-}
-
-function like(str, def, choices) {
-  if (Array.isArray(def)) {
-    choices = def
-    def = choices[0]
-  }
-  choices = choices || []
-  def = def || choices[0]
-  choices = choices.map(function (choice) {
-    return choice === def ? '\u001b[4m' + choice + '\u001b[24m' : choice
-  })
-  var info = !choices.length ? (('(' + def + ')') || '') : '(' + choices.join(', ') + ')'
-
-  return '\u001b[32m?\u001b[39m \u001b[1m' + str + 
-    '\u001b[22m \u001b[2m' + info + '\u001b[22m: '
-}
-
 module.exports = function() {
+  var runYo = util.runYo;
+  var locateGenerator = util.locateGenerator;
+  var series = util.series;
+  var inq = util.inq;
+
+  var composeDev = path.join(process.cwd(), 'fuge', 'compose-dev.yml');
 
   function createEnv(args, opts) {
     if (args && Object(args) === args && !Array.isArray(args)) {
-      opts = args
-      args = null
+      opts = args;
+      args = null;
     }
-    args = args || []
-    opts = opts || {}
+    args = args || [];
+    opts = opts || {};
     var env = yeoman.createEnv(args, opts);
 
-    env.register(gen('fuge'), 'fuge')
-    env.register(gen('hapi-seneca'), 'hapi-seneca')
-    env.register(gen('seneca-http'), 'seneca-http')
-    env.register(gen('seneca-redis'), 'seneca-redis')
+    generators.forEach(function (gen) {
+      env.register(locateGenerator(gen), gen);
+    })
 
-    return env
+    return env;
   }
 
   var createServiceDefinition = function (name) {
@@ -91,34 +61,32 @@ module.exports = function() {
            '  container_name: __SERVICE__\n').replace(/__SERVICE__/g, name);
   }
 
-  var selectTransport = function selectTransport(label, opts) {
-    label = label || 'System'
-    opts = opts || {}
-    var def = opts.def = opts.def || 'http'
-    var mixed = opts.mixed = 'mixed' in opts ? opts.mixed : true
+  var transportSelection = function transportSelection(label, opts) {
+    label = label || 'System';
+    opts = opts || {};
+    var def = opts.def = opts.def || 'http';
+    var mixed = opts.mixed = 'mixed' in opts ? opts.mixed : true;
 
-    var transports = ['http', 'redis', mixed && 'mixed'];
-    var transport = prompt(like(label + ' transport', transport, transports)) || def;
+    var transports = ['http', 'redis'];
+    if (mixed) transports.push('mixed');
+    var transport = prompt(inq(label + ' transport', transport, transports)) || def;
 
-    if (!~transports.indexOf(transport)) return selectTransport(label, def, opts);
-    return transport
+    if (!~transports.indexOf(transport)) return transportSelection(label, def, opts);
+    return transport;
   };
 
   var createService = function(srv, cwd, cb) {
-    var name = srv.name
-    var transport = srv.transport
-    var appendToCompose = srv.appendToCompose
+    var name = srv.name;
+    var transport = srv.transport;
+    var appendToCompose = srv.appendToCompose;
     
-
     fs.mkdirSync(cwd); 
     process.chdir(cwd);
-    var env = createEnv({cwd: cwd})
-    var composeDev = path.join(cwd, '..', 'fuge', 'compose-dev.yml')
+    var env = createEnv({cwd: cwd});
     
-
-    run(env, 'seneca-' + transport, function() {
+    runYo(env, 'seneca-' + transport, {name: srv.name}, function() {
       
-      var definition =  createServiceDefinition(name)
+      var definition = createServiceDefinition(name);
 
       if (appendToCompose && fs.existsSync(composeDev)) {
         fs.appendFileSync(composeDev, definition);
@@ -139,19 +107,20 @@ module.exports = function() {
       name: 'service-' + (Math.random() * 1e17).toString(32).substr(6), 
       transport: 'http', 
       appendToCompose: true
-    }
-    if (interactive) srv = defineService('Service', MEDIUM, srv)
-    createService(srv, path.join(process.cwd(), srv.name), cb)
+    };
+
+    if (interactive) srv = defineService('Service', MEDIUM, srv);
+    createService(srv, path.join(process.cwd(), srv.name), cb);
   }
 
   var defineService = function (label, interactivity, srv) {
     return {
-      name: (interactivity >= MEDIUM) && prompt(like(label + ' name', srv.name)) || srv.name,
+      name: (interactivity >= MEDIUM) && prompt(inq(label + ' name', srv.name)) || srv.name,
       transport: (srv.transport === 'mixed' || interactivity >= HIGH) ? 
-        selectTransport(srv.name, {mixed: false}) : 
+        transportSelection(srv.name, {mixed: false}) : 
         srv.transport,
       appendToCompose: (interactivity >= HIGH) ?
-        ask(like('append ' + srv.name + ' to compose-dev.yml?:', ['y', 'n'])) :
+        ask(inq('append ' + srv.name + ' to compose-dev.yml?:', ['y', 'n'])) :
         srv.appendToCompose
     };
   }
@@ -163,33 +132,30 @@ module.exports = function() {
     if (/low/i.test(i)) return LOW;
     if (/med|medium/i.test(i)) return MEDIUM;
     if (/high/i.test(i)) return HIGH;
-    return LOW
+    return LOW;
   };
 
-  var generateServices = function(args, cwd, cb) {
-    var interactivity = determineInteractivity(args.i);
-    var transport = (interactivity && interactivity <= MEDIUM) ? 
-      selectTransport() : 
-      'http';
+  var generateServices = function(opts, cb) {
+    var interactivity = opts.interactivity;
+    var cwd = opts.cwd;
+    var transport = opts.transport;
 
-
-    var services = []
-    services.push(defineService('1st service', interactivity, {
+    var services = [defineService('1st service', interactivity, {
       name: 'service1', 
       transport: transport, 
       appendToCompose: true
-    }))
+    })];
 
     if (interactivity <= LOW) {
       services.push(defineService('2nd service', interactivity, {
         name: 'service2', 
         transport: transport, 
         appendToCompose: true
-      }))      
+      }));   
     }
 
     if (interactivity >= MEDIUM) {
-      while (ask(like('add another service?', ['y', 'n']))) {
+      while (ask(inq('add another service?', ['y', 'n']))) {
         services.push(defineService(ord(services.length + 1) + ' service', interactivity, {
           name: 'service' + +(services.length + 1), 
           transport: transport, 
@@ -200,10 +166,10 @@ module.exports = function() {
 
     services = services.map(function (service) { 
       return function (cb) {
-        process.chdir(cwd)
+        process.chdir(cwd);
         createService(service, cwd + path.sep + service.name, cb);
-      }
-    })
+      };
+    });
 
     services.push(genSite);
 
@@ -212,9 +178,8 @@ module.exports = function() {
     function genSite(cb) {
       fs.mkdirSync(cwd + '/site'); 
       var hapiEnv = createEnv({cwd: cwd + '/site'});
-      hapiEnv.register(gen('hapi-seneca'), 'hapi-seneca');
 
-      run(hapiEnv, 'hapi-seneca', function() {
+      runYo(hapiEnv, 'hapi-seneca', {name: 'site'}, function() {
         console.log('');
         console.log('system generated !!');
         console.log('spin it up with : fuge run ./fuge/compose-dev.yml');
@@ -225,13 +190,22 @@ module.exports = function() {
     }
   }
 
-
   var generateSystem = function(args, cb) {
     var cwd = process.cwd();
+    var interactivity = determineInteractivity(args.i);
+
+    var transport = (interactivity && interactivity <= MEDIUM) ? 
+      transportSelection() : 
+      'http';
+
     var fuge = path.join(cwd, 'fuge')
     fs.mkdirSync(fuge); 
-    run(createEnv({cwd: fuge}), 'fuge', function() {
-      generateServices(args, cwd, cb)
+    runYo(createEnv({cwd: fuge}), 'fuge', {name: 'fuge'}, function() {
+      generateServices({
+        cwd: cwd, 
+        transport: transport,
+        interactivity: interactivity
+      }, cb);
     });
   };
 
