@@ -15,107 +15,201 @@
 'use strict';
 
 var fs = require('fs');
+var path = require('path');
 var yeoman = require('yeoman-environment');
-var readline = require('readline');
- 
+var prompt = require('incite');
+var ask = require('positive');
+var ord = require('ordinal').english;
+var util = require('./util')();
+
+var generators = Object.keys(require('./package.json').dependencies)
+  .filter(function (dep) { return /generator-/.test(dep)})
+  .map(function(gen) { return gen.replace(/generator-/, '') });
+
+var NONE = 0;
+var LOW = 1;
+var MEDIUM = 2;
+var HIGH = 3;
 
 module.exports = function() {
-  var env;
+  var runYo = util.runYo;
+  var locateGenerator = util.locateGenerator;
+  var series = util.series;
+  var inq = util.inq;
 
-  var init = function(cb) {
-    env = yeoman.createEnv();
-    env.lookup(function() {
-      cb();
-    });
+  var composeDev = path.join(process.cwd(), 'fuge', 'compose-dev.yml');
+
+  function createEnv(args, opts) {
+    if (args && Object(args) === args && !Array.isArray(args)) {
+      opts = args;
+      args = null;
+    }
+    args = args || [];
+    opts = opts || {};
+    var env = yeoman.createEnv(args, opts);
+
+    generators.forEach(function (gen) {
+      env.register(locateGenerator(gen), gen);
+    })
+
+    return env;
+  }
+
+  var createServiceDefinition = function (name) {
+    return ('__SERVICE__:\n' + 
+           '  build: ../__SERVICE__/\n' + 
+           '  container_name: __SERVICE__\n').replace(/__SERVICE__/g, name);
+  }
+
+  var transportSelection = function transportSelection(label, opts) {
+    label = label || 'System';
+    opts = opts || {};
+    var def = opts.def = opts.def || 'http';
+    var mixed = opts.mixed = 'mixed' in opts ? opts.mixed : true;
+
+    var transports = ['http', 'redis'];
+    if (mixed) transports.push('mixed');
+    var transport = prompt(inq(label + ' transport', transport, transports)) || def;
+
+    if (!~transports.indexOf(transport)) return transportSelection(label, def, opts);
+    return transport;
   };
 
+  var createService = function(srv, cwd, cb) {
+    var name = srv.name;
+    var transport = srv.transport;
+    var appendToCompose = srv.appendToCompose;
+    
+    fs.mkdirSync(cwd); 
+    process.chdir(cwd);
+    var env = createEnv({cwd: cwd});
+    
+    runYo(env, 'seneca-' + transport, {name: srv.name}, function() {
+      
+      var definition = createServiceDefinition(name);
 
+      if (appendToCompose && fs.existsSync(composeDev)) {
+        fs.appendFileSync(composeDev, definition);
+        return cb && cb();
+      }
 
-  var createService = function(serviceName, cb) {
-    var cwd = process.cwd();
-
-    fs.mkdirSync(cwd + '/' + serviceName); 
-    process.chdir(cwd + '/' + serviceName);
-    env.run('seneca-http', function() {
-      cb();
+      console.log('add the following to compose-dev.yml to enable this service: ');
+      console.log();
+      console.log(definition);
+      console.log();
+      cb && cb();
     });
+
   };
-  
 
+  var generateService = function(args, interactive, cb) {
+    var srv = {
+      name: 'service-' + (Math.random() * 1e17).toString(32).substr(6), 
+      transport: 'http', 
+      appendToCompose: true
+    };
 
-  var generateService = function(name, interactive, cb) {
-    var rl;
-    var definition = '__SERVICE__:\n' + 
-                     '  build: ../__SERVICE__/\n' + 
-                     '  container_name: __SERVICE__\n';
+    if (interactive) srv = defineService('Service', MEDIUM, srv);
+    createService(srv, path.join(process.cwd(), srv.name), cb);
+  }
 
-    name = name || '';
-    if (interactive) {
-      rl = readline.createInterface({input: process.stdin, output: process.stdout});
-      rl.question('service name [' + name + ']: ', function(serviceName) {
-        serviceName = serviceName || name;
-        if (!(serviceName && serviceName.length > 0)){
-          console.log('name not supplied - aborting!');
-          rl.close();
-          cb();
-        }
-        else {
-          createService(serviceName, function() {
-            definition = definition.replace(/__SERVICE__/g, serviceName);
-            rl.question('append this service to compose-dev.yml [y]: ', function(response) {
-              if (response === 'y' || response === 'Y') {
-                if (fs.existsSync('../fuge/compose-dev.yml')) {
-                  fs.appendFileSync('../fuge/compose-dev.yml', definition);
-                }
-              }
-              else {
-                console.log('add the following to compose-dev.yml to enable this service: ');
-                console.log('');
-                console.log(definition);
-                console.log('');
-              }
-              rl.close();
-            });
-          });
-        }
+  var defineService = function (label, interactivity, srv) {
+    return {
+      name: (interactivity >= MEDIUM) && prompt(inq(label + ' name', srv.name)) || srv.name,
+      transport: (srv.transport === 'mixed' || interactivity >= HIGH) ? 
+        transportSelection(srv.name, {mixed: false}) : 
+        srv.transport,
+      appendToCompose: (interactivity >= HIGH) ?
+        ask(inq('append ' + srv.name + ' to compose-dev.yml?:', ['y', 'n'])) :
+        srv.appendToCompose
+    };
+  }
+
+  var determineInteractivity = function (i) {
+    if (typeof i === 'number') return i;
+    if (i === true) return MEDIUM;
+    if (/none/i.test(i)) return NONE;
+    if (/low/i.test(i)) return LOW;
+    if (/med|medium/i.test(i)) return MEDIUM;
+    if (/high/i.test(i)) return HIGH;
+    return LOW;
+  };
+
+  var generateServices = function(opts, cb) {
+    var interactivity = opts.interactivity;
+    var cwd = opts.cwd;
+    var transport = opts.transport;
+
+    var services = [defineService('1st service', interactivity, {
+      name: 'service1', 
+      transport: transport, 
+      appendToCompose: true
+    })];
+
+    if (interactivity <= LOW) {
+      services.push(defineService('2nd service', interactivity, {
+        name: 'service2', 
+        transport: transport, 
+        appendToCompose: true
+      }));   
+    }
+
+    if (interactivity >= MEDIUM) {
+      while (ask(inq('add another service?', ['y', 'n']))) {
+        services.push(defineService(ord(services.length + 1) + ' service', interactivity, {
+          name: 'service' + +(services.length + 1), 
+          transport: transport, 
+          appendToCompose: true
+        }));
+      }
+    }
+
+    services = services.map(function (service) { 
+      return function (cb) {
+        process.chdir(cwd);
+        createService(service, cwd + path.sep + service.name, cb);
+      };
+    });
+
+    services.push(genSite);
+
+    series(services, cb);
+
+    function genSite(cb) {
+      fs.mkdirSync(cwd + '/site'); 
+      var hapiEnv = createEnv({cwd: cwd + '/site'});
+
+      runYo(hapiEnv, 'hapi-seneca', {name: 'site'}, function() {
+        console.log('');
+        console.log('system generated !!');
+        console.log('spin it up with : fuge run ./fuge/compose-dev.yml');
+        console.log('');
+        console.log('Have an awesome day, you\'re welcome.');
+        cb();
       });
     }
-    else {
-      createService(name, cb);
-    }
-  };
-
-
+  }
 
   var generateSystem = function(args, cb) {
     var cwd = process.cwd();
-    fs.mkdirSync(cwd + '/fuge'); 
-    process.chdir(cwd + '/fuge');
-    env.run('microbial', function() {
-      process.chdir(cwd);
-      generateService('service1', false, function() {
-        process.chdir(cwd);
-        generateService('service2', false, function() {
-          process.chdir(cwd);
-          fs.mkdirSync(cwd + '/site'); 
-          process.chdir(cwd + '/site');
-          env.run('hapi-seneca', function() {
-            console.log('');
-            console.log('system generated !!');
-            console.log('spin it up with : fuge run ./fuge/compose-dev.yml');
-            console.log('');
-            console.log('Have an awesome day, you\'re welcome.');
-            cb();
-          });
-        });
-      });
+    var interactivity = determineInteractivity(args.i);
+
+    var transport = (interactivity && interactivity <= MEDIUM) ? 
+      transportSelection() : 
+      'http';
+
+    var fuge = path.join(cwd, 'fuge')
+    fs.mkdirSync(fuge); 
+    runYo(createEnv({cwd: fuge}), 'fuge', {name: 'fuge'}, function() {
+      generateServices({
+        cwd: cwd, 
+        transport: transport,
+        interactivity: interactivity
+      }, cb);
     });
   };
 
-
-
   return {
-    init: init,
     generateSystem: generateSystem,
     generateService: generateService
   };

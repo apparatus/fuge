@@ -15,16 +15,24 @@
 'use strict';
 
 var test = require('tape');
-//var fuge = require('../fuge.js');
+var path = require('path');
+var fs = require('fs');
+var del = require('del');
+var fuge = require('../fuge.js');
 
+var before = test;
+var fixtures = path.join(__dirname, 'fixtures');
 
-test('run test', function(t) {
-  t.plan(1);
-
-  /*
-  fuge(['generate', 'system'], function(err) {
-    t.equal(err, null);
-  });
-  */
+before('set up', function (t) {
+  if (fs.existsSync(fixtures)) { del.sync(fixtures, {force: true}); }
+  fs.mkdirSync(fixtures);
+  process.chdir(fixtures);
+  t.end();
 });
 
+
+test('fuge generate system -i none', function(t) {
+  t.plan(1);
+  t.doesNotThrow(fuge.bind(fuge, ['generate', 'system', '-i', 'none']));
+  setImmediate(process.exit);
+});

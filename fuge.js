@@ -20,22 +20,24 @@ var runner = require('./runner')();
 var gen = require('./generator')();
 var shell = require('./shell')();
 var util = require('./util')();
-
+var minimist = require('minimist')
 
 
 var generateSystem = function(args) {
-  gen.init(function() {
-    gen.generateSystem(args, function() {
-    });
-  });
+  gen.generateSystem(minimist(args, {
+    alias: {
+      i: ['interactive', 'interactivity']
+    },
+    defaults: {
+      i: 1
+    }
+  }), function() {});
 };
 
 
 
 var generateService = function(args) {
-  gen.init(function() {
-    gen.generateService(args, true, function() {
-    });
+  gen.generateService(args, true, function() {
   });
 };
 
