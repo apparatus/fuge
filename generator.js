@@ -79,13 +79,13 @@ module.exports = function(composeFile) {
     label = label || 'System';
     opts = opts || {};
     var def = opts.def = opts.def || 'http';
-    var mixed = opts.mixed = 'mixed' in opts ? opts.mixed : true;
+    var mixed = 'mixed' in opts ? opts.mixed : true;
 
     var transports = TRANSPORTS.slice();
     if (mixed) transports.push('mixed');
     var transport = prompt(inq(label + ' transport', transport, transports)) || def;
 
-    if (!~transports.indexOf(transport)) return transportSelection(label, def, opts);
+    if (!~transports.indexOf(transport)) return transportSelection(label, opts);
     return transport;
   };
 
