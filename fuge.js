@@ -17,30 +17,31 @@
 
 var program = require('commist')();
 var runner = require('./runner')();
-var gen = require('./generator')();
+var gen = require('./generator');
 var shell = require('./shell')();
 var util = require('./util')();
 var minimist = require('minimist')
 
-
 var generateSystem = function(args) {
-  gen.generateSystem(minimist(args, {
-    alias: {
-      i: ['interactive', 'interactivity']
-    },
-    defaults: {
-      i: 1
-    }
-  }), function() {});
+  args = argify(args)
+  gen(args.c).generateSystem(args, function() {});
 };
 
-
-
 var generateService = function(args) {
-  gen.generateService(args, true, function() {
+  args = argify(args)
+  gen(args.c).generateService(args, true, function() {
   });
 };
 
+var generateDashboard = function(args) {
+  args = argify(args)
+  gen(args.c).generateDashboard(args, function() {
+    if (err) {
+      return console.error(err);
+    }
+    console.log('Dashboard generated')
+  });
+};
 
 
 var buildSystem = function(args) {
@@ -51,8 +52,6 @@ var buildSystem = function(args) {
     });
   });
 };
-
-
 
 var pullSystem = function(args) {
   console.log('pulling...');
@@ -73,8 +72,6 @@ var runSystem = function(args) {
   });
 };
 
-
-
 var runShell = function(args) {
   console.log('compiling...');
   util.compile(args, function(err, system, config) {
@@ -82,8 +79,6 @@ var runShell = function(args) {
     shell.run(system, config);
   });
 };
-
-
 
 var previewSystem = function(args) {
   console.log('compiling...');
@@ -93,26 +88,31 @@ var previewSystem = function(args) {
   });
 };
 
-
-
 program.register('generate system', generateSystem);
 program.register('generate service', generateService);
+program.register('generate dashboard', generateDashboard);
 program.register('build', buildSystem);
 program.register('pull', pullSystem);
 program.register('run', runSystem);
 program.register('preview', previewSystem);
 program.register('shell', runShell);
 
-
+function argify(args) {
+  return minimist(args, {
+    alias: {
+      c: ['compose-file', 'composefile', 'compose'],
+      i: ['interactive', 'interactivity']
+    },
+    defaults: {
+      i: 1
+    }
+  });
+}
 
 function start(argv) {
   var remaining = program.parse(argv);
-  if (remaining) {
-    console.log('No matching command.');
-  }
+  if (remaining) { console.log('No matching command.'); }
 }
-
-
 
 module.exports = start;
 if (require.main === module) {

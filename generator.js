@@ -21,6 +21,8 @@ var prompt = require('incite');
 var ask = require('positive');
 var ord = require('ordinal').english;
 var util = require('./util')();
+var yaml = require('yamljs');
+var spawn = require('child_process').spawn;
 
 var generators = Object.keys(require('./package.json').dependencies)
   .filter(function (dep) { return /generator-/.test(dep)})
@@ -30,14 +32,25 @@ var NONE = 0;
 var LOW = 1;
 var MEDIUM = 2;
 var HIGH = 3;
+var TRANSPORTS = ['http', 'redis'];
 
-module.exports = function() {
+module.exports = function(composeFile) {
   var runYo = util.runYo;
   var locateGenerator = util.locateGenerator;
   var series = util.series;
   var inq = util.inq;
+  var cwd = process.cwd();
+  //if a compose file was supplied, check if it exists,
+  //if not, throw an error
+  if (composeFile && !fs.existsSync(composeFile)) {
+    throw Error('Cannot locate compose file', composeFile);
+  }
 
-  var composeDev = path.join(process.cwd(), 'fuge', 'compose-dev.yml');
+  //if no compose file supplied search for compose-dev.yml
+  //in ./fuge/compose-dev.yml, ./compose-dev.yml and ../fuge/compose-dev.yml paths
+  if (!composeFile) {
+    composeFile = path.join(cwd, 'fuge', 'compose-dev.yml');
+  }
 
   function createEnv(args, opts) {
     if (args && Object(args) === args && !Array.isArray(args)) {
@@ -56,22 +69,23 @@ module.exports = function() {
   }
 
   var createServiceDefinition = function (name) {
-    return ('__SERVICE__:\n' + 
+    console.log('creating service def for', name)
+    return ('\n__SERVICE__:\n' + 
            '  build: ../__SERVICE__/\n' + 
-           '  container_name: __SERVICE__\n').replace(/__SERVICE__/g, name);
+           '  container_name: __SERVICE__').replace(/__SERVICE__/g, name);
   }
 
   var transportSelection = function transportSelection(label, opts) {
     label = label || 'System';
     opts = opts || {};
     var def = opts.def = opts.def || 'http';
-    var mixed = opts.mixed = 'mixed' in opts ? opts.mixed : true;
+    var mixed = 'mixed' in opts ? opts.mixed : true;
 
-    var transports = ['http', 'redis'];
+    var transports = TRANSPORTS.slice();
     if (mixed) transports.push('mixed');
     var transport = prompt(inq(label + ' transport', transport, transports)) || def;
 
-    if (!~transports.indexOf(transport)) return transportSelection(label, def, opts);
+    if (!~transports.indexOf(transport)) return transportSelection(label, opts);
     return transport;
   };
 
@@ -83,13 +97,13 @@ module.exports = function() {
     fs.mkdirSync(cwd); 
     process.chdir(cwd);
     var env = createEnv({cwd: cwd});
-    
+
     runYo(env, 'seneca-' + transport, {name: srv.name}, function() {
       
       var definition = createServiceDefinition(name);
 
-      if (appendToCompose && fs.existsSync(composeDev)) {
-        fs.appendFileSync(composeDev, definition);
+      if (appendToCompose && fs.existsSync(composeFile)) {
+        fs.appendFileSync(composeFile, definition);
         return cb && cb();
       }
 
@@ -103,9 +117,10 @@ module.exports = function() {
   };
 
   var generateService = function(args, interactive, cb) {
+    args = args || {}
     var srv = {
-      name: 'service-' + (Math.random() * 1e17).toString(32).substr(6), 
-      transport: 'http', 
+      name: args.name || 'service-' + (Math.random() * 1e17).toString(32).substr(6), 
+      transport: args.transport, 
       appendToCompose: true
     };
 
@@ -142,7 +157,7 @@ module.exports = function() {
 
     var services = [defineService('1st service', interactivity, {
       name: 'service1', 
-      transport: transport, 
+      transport: transport || 'http', 
       appendToCompose: true
     })];
 
@@ -190,6 +205,115 @@ module.exports = function() {
     }
   }
 
+  var addInfluxDbDefinition = function (compose) {
+    compose.influxdb = {
+      image: 'tutum/influxdb:0.9',
+      ports: [
+        '8086:8086',
+        '8083:8083'
+      ],
+      environment: {
+        PRE_CREATE_DB: 'seneca_msgstats',
+        ADMIN_USER: 'msgstats',
+        INFLUXDB_INIT_PWD: 'msgstats'
+      }
+    }
+    return compose
+  };
+
+  var addMetricsService = function (compose) {
+    compose.metrics = {
+      build: '../fuge-metrics',
+      container_name: 'fuge-metrics'
+    }
+    fs.mkdirSync(path.join(composeFile, '..', '..', 'fuge-metrics'));
+    return compose
+  };
+
+  var addMsgstats = function (compose) {
+    var services = Object.keys(compose)
+      .map(function(k) { return compose[k]; })
+      .filter(function (srv) { return srv.build; })
+
+    var added = services
+      .map(function (srv) {
+        var srvPath = path.join(path.dirname(composeFile), srv.build);
+        if (!fs.existsSync(srvPath)) {
+          console.warn('Warning: ', srv.container_name, ' build folder does not exist!');
+          return;
+        }
+        if (!fs.existsSync(path.join(srvPath, 'package.json'))) { return; }
+        var pkg = JSON.parse(fs.readFileSync(path.join(srvPath, 'package.json')));
+        var deps = Object.keys(pkg.dependencies);
+        var spIx;
+        if (!~deps.indexOf('seneca')) { return; }
+        if (!~deps.indexOf('seneca-env-plugins')) {
+          console.warn('Warning: ', srv.container_name, ' service is not using seneca-env-plugins!');
+          return
+        }
+        srv.environment = srv.environment || {}
+        if (Array.isArray(srv.environment)) {
+          srv.environment.some(function (env, i) {
+            var match = /SENECA_PLUGINS.+=/.test(env);
+            if (match) { spIx = i; }
+            return match;
+          })
+
+          if (typeof spIx === 'number') { 
+            srv.environment[spIx] = srv.environment[spIx]
+            .split('=')[0]
+              .split(',')
+              .concat('msgstats')
+              .join(',');
+            return {srv: srv, pkg: pkg, path: srvPath}
+          }
+          srv.environment.push('SENECA_PLUGINS="msgstats"');
+          return {srv: srv, pkg: pkg, path: srvPath}
+        }
+        if ('SENECA_PLUGINS' in srv.environment) {
+          srv.environment.SENECA_PLUGINS = srv.environment.SENECA_PLUGINS
+            .split(',')
+            .concat('msgstats')
+            .join(',');
+          return {srv: srv, pkg: pkg, path: srvPath}
+        }
+        srv.environment.SENECA_PLUGINS = 'msgstats';
+        return {srv: srv, pkg: pkg, path: srvPath}
+      })
+      .filter(Boolean)
+
+
+    function installDeps(added) {
+      if (!added.length) { return; }
+      spawn('npm', ['i', '--save', 'seneca-msgstats'], {
+        cwd: added.unshift().path,
+        stdio: 'inherit'
+      })
+      .on('close', function () {
+        installDeps(added)
+      })
+    }
+
+    return compose;
+  };
+
+  var generateDashboard = function (cb) {
+    
+    var compose = yaml.load(composeFile)
+    var dashboard = path.join(composeFile, '..', '..', 'dashboard');
+
+    compose = addMsgstats(compose);
+    compose = addInfluxDbDefinition(compose);
+    compose = addMetricsService(compose);
+    fs.mkdirSync(dashboard);
+    runYo(createEnv({cwd: dashboard}), 'vidi-dashboard', {name: 'dashboard'}, function (err) {
+      if (err) { return cb(err); }
+      compose = yaml.dump(compose);
+      fs.writeFile(composeFile, compose, cb);
+    });
+
+  }
+
   var generateSystem = function(args, cb) {
     var cwd = process.cwd();
     var interactivity = determineInteractivity(args.i);
@@ -211,7 +335,8 @@ module.exports = function() {
 
   return {
     generateSystem: generateSystem,
-    generateService: generateService
+    generateService: generateService,
+    generateDashboard: generateDashboard
   };
 };
 
