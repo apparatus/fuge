@@ -41,10 +41,14 @@ Fuge will ask you for some simple questions and then generate a system for you. 
 
 ```
 ├── fuge
-│   └── compose-dev.yml
+│   ├── compose-dev.yml
+│   └── fuge-config.json
 ├── service1
+│	└── Dockerfile
 ├── service2
+│	└── Dockerfile
 └── site
+	├── Dockerfile
     ├── api
     └── public
 ```
