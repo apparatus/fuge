@@ -20,28 +20,46 @@ var runner = require('./runner')();
 var gen = require('./generator');
 var shell = require('./shell')();
 var util = require('./util')();
-var minimist = require('minimist')
+var minimist = require('minimist');
+
+
+function argify(args) {
+  return minimist(args, {
+    alias: {
+      c: ['compose-file', 'composefile', 'compose'],
+      i: ['interactive', 'interactivity']
+    },
+    defaults: {
+      i: 1
+    }
+  });
+}
+
+
 
 var generateSystem = function(args) {
-  args = argify(args)
+  args = argify(args);
   gen(args.c).generateSystem(args, function() {});
 };
 
+
+
 var generateService = function(args) {
-  args = argify(args)
+  args = argify(args);
   gen(args.c).generateService(args, true, function() {
   });
 };
 
+
+
 var generateDashboard = function(args) {
-  args = argify(args)
-  gen(args.c).generateDashboard(args, function() {
-    if (err) {
-      return console.error(err);
-    }
-    console.log('Dashboard generated')
+  args = argify(args);
+  gen(args.c).generateDashboard(args, function(err) {
+    if (err) { return console.error(err); }
+    console.log('Dashboard generated');
   });
 };
+
 
 
 var buildSystem = function(args) {
@@ -72,6 +90,8 @@ var runSystem = function(args) {
   });
 };
 
+
+
 var runShell = function(args) {
   console.log('compiling...');
   util.compile(args, function(err, system, config) {
@@ -79,6 +99,8 @@ var runShell = function(args) {
     shell.run(system, config);
   });
 };
+
+
 
 var previewSystem = function(args) {
   console.log('compiling...');
@@ -88,6 +110,23 @@ var previewSystem = function(args) {
   });
 };
 
+
+
+var showHelp = function() {
+  console.log('');
+  console.log('usage: fuge <command> <options>');
+  console.log('available commands');
+  console.log('generate [system | service] - generate a system or an additional system service');
+  console.log('build - build a system by executing the RUN commands in each services Dockerfile');
+  console.log('pull - update a system by attempting a git pull against each service');
+  console.log('run <compose file> - run a system');
+  console.log('preview <compose file> - preview a run command for a system');
+  console.log('shell <compose file> - start an interactive shell for a system');
+  console.log('help - show this help');
+};
+
+
+
 program.register('generate system', generateSystem);
 program.register('generate service', generateService);
 program.register('generate dashboard', generateDashboard);
@@ -96,23 +135,17 @@ program.register('pull', pullSystem);
 program.register('run', runSystem);
 program.register('preview', previewSystem);
 program.register('shell', runShell);
+program.register('help', showHelp);
+program.register('--help', showHelp);
 
-function argify(args) {
-  return minimist(args, {
-    alias: {
-      c: ['compose-file', 'composefile', 'compose'],
-      i: ['interactive', 'interactivity']
-    },
-    defaults: {
-      i: 1
-    }
-  });
-}
+
 
 function start(argv) {
   var remaining = program.parse(argv);
   if (remaining) { console.log('No matching command.'); }
 }
+
+
 
 module.exports = start;
 if (require.main === module) {

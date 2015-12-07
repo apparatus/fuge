@@ -1,3 +1,4 @@
+/* jshint camelcase: false */
 /*
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -24,15 +25,17 @@ var util = require('./util')();
 var yaml = require('yamljs');
 var spawn = require('child_process').spawn;
 
-var generators = Object.keys(require('./package.json').dependencies)
-  .filter(function (dep) { return /generator-/.test(dep)})
-  .map(function(gen) { return gen.replace(/generator-/, '') });
-
 var NONE = 0;
 var LOW = 1;
 var MEDIUM = 2;
 var HIGH = 3;
 var TRANSPORTS = ['http', 'redis'];
+
+var generators = Object.keys(require('./package.json').dependencies)
+  .filter(function (dep) { return /generator-/.test(dep); })
+  .map(function(gen) { return gen.replace(/generator-/, ''); });
+
+
 
 module.exports = function(composeFile) {
   var runYo = util.runYo;
@@ -40,17 +43,17 @@ module.exports = function(composeFile) {
   var series = util.series;
   var inq = util.inq;
   var cwd = process.cwd();
-  //if a compose file was supplied, check if it exists,
-  //if not, throw an error
+
+  //if a compose file was supplied, check if it exists, if not, throw an error
   if (composeFile && !fs.existsSync(composeFile)) {
     throw Error('Cannot locate compose file', composeFile);
   }
 
-  //if no compose file supplied search for compose-dev.yml
-  //in ./fuge/compose-dev.yml, ./compose-dev.yml and ../fuge/compose-dev.yml paths
+  //if no compose file supplied search for compose-dev.yml in ./fuge/compose-dev.yml, ./compose-dev.yml and ../fuge/compose-dev.yml paths
   if (!composeFile) {
     composeFile = path.join(cwd, 'fuge', 'compose-dev.yml');
   }
+
 
   function createEnv(args, opts) {
     if (args && Object(args) === args && !Array.isArray(args)) {
@@ -63,17 +66,21 @@ module.exports = function(composeFile) {
 
     generators.forEach(function (gen) {
       env.register(locateGenerator(gen), gen);
-    })
+    });
 
     return env;
   }
 
+
+
   var createServiceDefinition = function (name) {
-    console.log('creating service def for', name)
+    console.log('creating service def for', name);
     return ('\n__SERVICE__:\n' + 
            '  build: ../__SERVICE__/\n' + 
            '  container_name: __SERVICE__').replace(/__SERVICE__/g, name);
-  }
+  };
+
+
 
   var transportSelection = function transportSelection(label, opts) {
     label = label || 'System';
@@ -82,12 +89,14 @@ module.exports = function(composeFile) {
     var mixed = 'mixed' in opts ? opts.mixed : true;
 
     var transports = TRANSPORTS.slice();
-    if (mixed) transports.push('mixed');
+    if (mixed) { transports.push('mixed'); }
     var transport = prompt(inq(label + ' transport', transport, transports)) || def;
 
-    if (!~transports.indexOf(transport)) return transportSelection(label, opts);
+    if (transports.indexOf(transport) === -1) { return transportSelection(label, opts); }
     return transport;
   };
+
+
 
   var createService = function(srv, cwd, cb) {
     var name = srv.name;
@@ -111,22 +120,25 @@ module.exports = function(composeFile) {
       console.log();
       console.log(definition);
       console.log();
-      cb && cb();
+      if (cb) { cb(); }
     });
-
   };
 
+
+
   var generateService = function(args, interactive, cb) {
-    args = args || {}
+    args = args || {};
     var srv = {
       name: args.name || 'service-' + (Math.random() * 1e17).toString(32).substr(6), 
       transport: args.transport, 
       appendToCompose: true
     };
 
-    if (interactive) srv = defineService('Service', MEDIUM, srv);
+    if (interactive) { srv = defineService('Service', MEDIUM, srv); }
     createService(srv, path.join(process.cwd(), srv.name), cb);
-  }
+  };
+
+
 
   var defineService = function (label, interactivity, srv) {
     return {
@@ -138,17 +150,21 @@ module.exports = function(composeFile) {
         ask(inq('append ' + srv.name + ' to compose-dev.yml?:', ['y', 'n'])) :
         srv.appendToCompose
     };
-  }
+  };
+
+
 
   var determineInteractivity = function (i) {
-    if (typeof i === 'number') return i;
-    if (i === true) return MEDIUM;
-    if (/none/i.test(i)) return NONE;
-    if (/low/i.test(i)) return LOW;
-    if (/med|medium/i.test(i)) return MEDIUM;
-    if (/high/i.test(i)) return HIGH;
+    if (typeof i === 'number') { return i; }
+    if (i === true) { return MEDIUM; }
+    if (/none/i.test(i)) { return NONE; }
+    if (/low/i.test(i)) { return LOW; }
+    if (/med|medium/i.test(i)) { return MEDIUM; }
+    if (/high/i.test(i)) { return HIGH; }
     return LOW;
   };
+
+
 
   var generateServices = function(opts, cb) {
     var interactivity = opts.interactivity;
@@ -172,7 +188,7 @@ module.exports = function(composeFile) {
     if (interactivity >= MEDIUM) {
       while (ask(inq('add another service?', ['y', 'n']))) {
         services.push(defineService(ord(services.length + 1) + ' service', interactivity, {
-          name: 'service' + +(services.length + 1), 
+          name: 'service' + (services.length + 1), 
           transport: transport, 
           appendToCompose: true
         }));
@@ -186,9 +202,6 @@ module.exports = function(composeFile) {
       };
     });
 
-    services.push(genSite);
-
-    series(services, cb);
 
     function genSite(cb) {
       fs.mkdirSync(cwd + '/site'); 
@@ -203,7 +216,12 @@ module.exports = function(composeFile) {
         cb();
       });
     }
-  }
+
+    services.push(genSite);
+    series(services, cb);
+  };
+
+
 
   var addInfluxDbDefinition = function (compose) {
     compose.influxdb = {
@@ -217,23 +235,27 @@ module.exports = function(composeFile) {
         ADMIN_USER: 'msgstats',
         INFLUXDB_INIT_PWD: 'msgstats'
       }
-    }
-    return compose
+    };
+    return compose;
   };
+
+
 
   var addMetricsService = function (compose) {
     compose.metrics = {
-      build: '../fuge-metrics',
-      container_name: 'fuge-metrics'
-    }
+      'build': '../fuge-metrics',
+      'container_name': 'fuge-metrics'
+    };
     fs.mkdirSync(path.join(composeFile, '..', '..', 'fuge-metrics'));
-    return compose
+    return compose;
   };
+
+
 
   var addMsgstats = function (compose) {
     var services = Object.keys(compose)
       .map(function(k) { return compose[k]; })
-      .filter(function (srv) { return srv.build; })
+      .filter(function (srv) { return srv.build; });
 
     var added = services
       .map(function (srv) {
@@ -246,18 +268,18 @@ module.exports = function(composeFile) {
         var pkg = JSON.parse(fs.readFileSync(path.join(srvPath, 'package.json')));
         var deps = Object.keys(pkg.dependencies);
         var spIx;
-        if (!~deps.indexOf('seneca')) { return; }
-        if (!~deps.indexOf('seneca-env-plugins')) {
+        if (-1 === deps.indexOf('seneca')) { return; }
+        if (-1 === deps.indexOf('seneca-env-plugins')) {
           console.warn('Warning: ', srv.container_name, ' service is not using seneca-env-plugins!');
-          return
+          return;
         }
-        srv.environment = srv.environment || {}
+        srv.environment = srv.environment || {};
         if (Array.isArray(srv.environment)) {
           srv.environment.some(function (env, i) {
             var match = /SENECA_PLUGINS.+=/.test(env);
             if (match) { spIx = i; }
             return match;
-          })
+          });
 
           if (typeof spIx === 'number') { 
             srv.environment[spIx] = srv.environment[spIx]
@@ -265,22 +287,22 @@ module.exports = function(composeFile) {
               .split(',')
               .concat('msgstats')
               .join(',');
-            return {srv: srv, pkg: pkg, path: srvPath}
+            return {srv: srv, pkg: pkg, path: srvPath};
           }
           srv.environment.push('SENECA_PLUGINS="msgstats"');
-          return {srv: srv, pkg: pkg, path: srvPath}
+          return {srv: srv, pkg: pkg, path: srvPath};
         }
         if ('SENECA_PLUGINS' in srv.environment) {
           srv.environment.SENECA_PLUGINS = srv.environment.SENECA_PLUGINS
             .split(',')
             .concat('msgstats')
             .join(',');
-          return {srv: srv, pkg: pkg, path: srvPath}
+          return {srv: srv, pkg: pkg, path: srvPath};
         }
         srv.environment.SENECA_PLUGINS = 'msgstats';
-        return {srv: srv, pkg: pkg, path: srvPath}
+        return {srv: srv, pkg: pkg, path: srvPath};
       })
-      .filter(Boolean)
+      .filter(Boolean);
 
 
     function installDeps(added) {
@@ -290,16 +312,16 @@ module.exports = function(composeFile) {
         stdio: 'inherit'
       })
       .on('close', function () {
-        installDeps(added)
-      })
+        installDeps(added);
+      });
     }
-
     return compose;
   };
 
+
+
   var generateDashboard = function (cb) {
-    
-    var compose = yaml.load(composeFile)
+    var compose = yaml.load(composeFile);
     var dashboard = path.join(composeFile, '..', '..', 'dashboard');
 
     compose = addMsgstats(compose);
@@ -311,8 +333,9 @@ module.exports = function(composeFile) {
       compose = yaml.dump(compose);
       fs.writeFile(composeFile, compose, cb);
     });
+  };
 
-  }
+
 
   var generateSystem = function(args, cb) {
     var cwd = process.cwd();
@@ -322,7 +345,7 @@ module.exports = function(composeFile) {
       transportSelection() : 
       'http';
 
-    var fuge = path.join(cwd, 'fuge')
+    var fuge = path.join(cwd, 'fuge');
     fs.mkdirSync(fuge); 
     runYo(createEnv({cwd: fuge}), 'fuge', {name: 'fuge'}, function() {
       generateServices({
@@ -332,6 +355,8 @@ module.exports = function(composeFile) {
       }, cb);
     });
   };
+
+
 
   return {
     generateSystem: generateSystem,

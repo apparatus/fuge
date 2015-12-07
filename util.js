@@ -76,7 +76,7 @@ module.exports = function() {
   };
 
   var locateGenerator = function locateGenerator(name) {
-    if (!/generator-/.test(name)) name = 'generator-' + name
+    if (!/generator-/.test(name)) { name = 'generator-' + name; }
     return require.resolve(
       path.join(__dirname, 'node_modules', name, 'generators', 'app', 'index.js')
     );
