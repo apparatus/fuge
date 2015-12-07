@@ -221,6 +221,14 @@ module.exports = function(composeFile) {
     return compose
   };
 
+  var addDashboardDefinition = function (compose) {
+    compose.dashboard = {
+      build: '../dashboard',
+      container_name: 'dashboard'
+    }
+    return compose
+  };
+
   var addMetricsService = function (compose, cb) {
     compose.metrics = {
       build: '../fuge-metrics',
@@ -313,6 +321,7 @@ module.exports = function(composeFile) {
       fs.mkdirSync(dashboard);
       runYo(createEnv({cwd: dashboard}), 'vidi-dashboard', {name: 'dashboard'}, function (err) {
         if (err) { return cb(err); }
+        compose = addDashboardDefinition(compose)
         compose = yaml.dump(compose);
         fs.writeFile(composeFile, compose, cb);
       });
