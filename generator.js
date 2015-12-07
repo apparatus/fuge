@@ -221,13 +221,16 @@ module.exports = function(composeFile) {
     return compose
   };
 
-  var addMetricsService = function (compose) {
+  var addMetricsService = function (compose, cb) {
     compose.metrics = {
       build: '../fuge-metrics',
       container_name: 'fuge-metrics'
     }
-    fs.mkdirSync(path.join(composeFile, '..', '..', 'fuge-metrics'));
-    return compose
+    var metrics = path.join(composeFile, '..', '..', 'fuge-metrics')
+    fs.mkdirSync(metrics);
+    runYo(createEnv({cwd: metrics}), 'seneca-metrics', {name: 'fuge-metrics'}, function (err) {
+      cb(err, compose)
+    })
   };
 
   var addMsgstats = function (compose) {
@@ -293,6 +296,7 @@ module.exports = function(composeFile) {
         installDeps(added)
       })
     }
+    installDeps(added)
 
     return compose;
   };
@@ -304,15 +308,16 @@ module.exports = function(composeFile) {
 
     compose = addMsgstats(compose);
     compose = addInfluxDbDefinition(compose);
-    compose = addMetricsService(compose);
-    fs.mkdirSync(dashboard);
-    runYo(createEnv({cwd: dashboard}), 'vidi-dashboard', {name: 'dashboard'}, function (err) {
+    compose = addMetricsService(compose, function(err, compose) {
       if (err) { return cb(err); }
-      compose = yaml.dump(compose);
-      fs.writeFile(composeFile, compose, cb);
+      fs.mkdirSync(dashboard);
+      runYo(createEnv({cwd: dashboard}), 'vidi-dashboard', {name: 'dashboard'}, function (err) {
+        if (err) { return cb(err); }
+        compose = yaml.dump(compose);
+        fs.writeFile(composeFile, compose, cb);
+      });
     });
-
-  }
+  };
 
   var generateSystem = function(args, cb) {
     var cwd = process.cwd();
