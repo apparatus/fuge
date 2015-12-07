@@ -309,6 +309,13 @@ module.exports = function(composeFile) {
     return compose;
   };
 
+  var enableDocker = function () {
+    var fugeConfig = path.resolve(composeFile, '..', 'fuge-config.js');
+    var cfg = require(fugeConfig);
+    cfg.runDocker = true;
+    fs.writeFileSync(fugeConfig, 'module.exports = ' + JSON.stringify(cfg, 0, 2));
+  };
+
   var generateDashboard = function (cb) {
     
     var compose = yaml.load(composeFile)
@@ -316,7 +323,10 @@ module.exports = function(composeFile) {
 
     compose = addMsgstats(compose);
     compose = addInfluxDbDefinition(compose);
-    compose = addMetricsService(compose, function(err, compose) {
+    
+    enableDocker()
+
+    addMetricsService(compose, function(err, compose) {
       if (err) { return cb(err); }
       fs.mkdirSync(dashboard);
       runYo(createEnv({cwd: dashboard}), 'vidi-dashboard', {name: 'dashboard'}, function (err) {
