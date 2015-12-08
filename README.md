@@ -18,11 +18,13 @@ npm install -g fuge
 ```
 
 ## Overview
-Fuge aims to help developers working on microservice systems in two ways:
+Fuge aims to help developers working on microservice systems in several ways:
 
 - By providing a microservice scaffold generator
 
-- By providing an execution environment
+- By providing a service execution environment
+
+- By reducing the friction between processes and containers
 
 ## Scaffold Generator
 The scaffold generator creates a fully functional microservice system that is ready to run. Once generated you can add additional services manually or by using the service generator.
@@ -53,6 +55,8 @@ Fuge will ask you for some simple questions and then generate a system for you. 
     └── public
 ```
 
+The structure has the following key files:
+
 * fuge - This directory contains two files
   * compose-dev.yml - a docker-compose yaml file that serves as the main configuration reference for the system
   * fuge-config.json - contains fuge specific settings and overrides not supported by docker-compose
@@ -66,8 +70,7 @@ To start the generated system execute:
 fuge run ./fuge/compose-dev.yml
 ```
 
-This will spin up the site and the two related microservices. Point your browser to http://localhost:10000/public/basic.html to open the front end
-and exercise the microservices.
+This will spin up the site and the two related microservices. Point your browser to http://localhost:10000/ to open the front end and exercise the microservices.
 
 Fuge watches your code for changes and will automatically restart the front end and services as you make changes, providing a rapid development environment for integration testing and debugging.
 
@@ -112,32 +115,51 @@ If you are familiar with docker, you will notice that fuge generates a Dockerfil
 docker-compose -f ./fuge/compose-dev up
 ```
 
-Docker will build a set of containers and 
+Docker will build a set of containers and start them up for you.
 
 
-## Adding a Dashboard
+## Adding Infrastructure
+Lets say that we want one of our services to connect a redis server. We could go ahead and install redis to our development system. Another approach however is to use docker. If you have docker installed then try the following:
+
+Edit compose-dev.yml and add the following:
+
+```
+redis:
+  image: redis
+  ports:
+    - 6379:6379
+```
+
+Ensure that the redis container is on your system by running
+
+```
+docker pull redis
+```
+
+Start the system up in the fuge shell again by running
+
+```
+fuge shell ./fuge/compose-dev.yml
+```
+
+Starting fuge will now start the redis container as well as your micro-services.
 
 ## Proxy
+In addition to running docker containers, Fuge will proxy connections to the docker virtual machine on a mac and windows environment. Running the proxy command will show you how fuge is proxying connections to the docker containers running as part of your system
 
-## Test
-To run tests, use npm:
-
-```
-npm run test
-```
 
 ## Contributing
-The [microbial-lab team][] encourage open participation. If you feel you can help in any way, be it with
+The [apparatus team][] encourage open participation. If you feel you can help in any way, be it with
 documentation, examples, extra testing, or new features please get in touch.
 
 ## License
-Copyright the microbial-lab team 2015, Licensed under [MIT][].
+Copyright the apparatus team 2015, Licensed under [MIT][].
 
-[microbial-lab team]: https://github.com/microbial-lab
-[travis-badge]: https://travis-ci.org/microbial-lab/fuge-runner.svg
-[travis-url]: https://travis-ci.org/microbial-lab/fuge-runner
+[apparatus team]: https://github.com/apparatus
+[travis-badge]: https://travis-ci.org/apparatus/fuge-runner.svg
+[travis-url]: https://travis-ci.org/apparatus/fuge-runner
 [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
-[gitter-url]: https://gitter.im/microbial-lab
+[gitter-url]: https://gitter.im/apparatus
 
 [MIT]: ./LICENSE
-[github issue]: https://github.com/microbial-lab/fuge-runner/issues/new
+[github issue]: https://github.com/apparatus/fuge-runner/issues/new
