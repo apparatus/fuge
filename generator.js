@@ -120,14 +120,14 @@ module.exports = function(composeFile) {
   var generateService = function(args, interactive, cb) {
     args = args || {}
     var srv = {
-      name: args.name || 'service-' + (Math.random() * 1e17).toString(32).substr(6), 
-      transport: args.transport, 
+      name: args.name || 'service' + (Math.random() * 1e17).toString(32).substr(6), 
+      transport: args.transport || 'http',
       appendToCompose: true
     };
 
-    if (interactive) srv = defineService('Service', MEDIUM, srv);
+    if (interactive) { srv = defineService('Service', MEDIUM, srv); }
     createService(srv, path.join(process.cwd(), srv.name), cb);
-  }
+  };
 
   var defineService = function (label, interactivity, srv) {
     return {
