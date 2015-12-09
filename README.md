@@ -5,6 +5,9 @@
 
 Fuge provides a generation and execution environment for microservice development on node.js.
 
+
+![demo](./assets/demo.gif)
+
 If you're using this module, and need help, you can:
 
 - Post a [github issue][],
@@ -91,21 +94,21 @@ fuge shell ./fuge/compose-dev.yml
 
 The fuge shell supports the following commands:
 
-* help - display a list of supported commands
-* ps - list status of managed processes and containers
-* proxy - list proxy and port forwarding status
-* info [process name] - show information on a specific process
-* stop [process] - stop a process and any associated watcher
-* stop all - stop all processs and watchers
-* start [process] - start a process
-* start all - start all stopped processes
-* debug [process] - start a process in debug mode and launch node-debug (experimental)
-* watch [process] | all - turn on watching for a process or for all processes
-* unwatch [process] | all - turn off watching for a process or for all processes
-* tail [process] | all - tail output for a process or for all processes
-* untail [process] | all - end tail output for a specific processes or for all processes
-* grep 'search string' [process] - searches a processes log or all processe logs
-* exit - termiate all managed process and exit
+* **help** - display a list of supported commands
+* **ps** - list status of managed processes and containers
+* **proxy** - list proxy and port forwarding status
+* **info [process name]** - show information on a specific process
+* **stop [process]** - stop a process and any associated watcher
+* **stop all** - stop all processs and watchers
+* **start [process]** - start a process
+* **start all** - start all stopped processes
+* **debug [process]** - start a process in debug mode and launch node-debug (experimental)
+* **watch [process] | all** - turn on watching for a process or for all processes
+* **unwatch [process] | all** - turn off watching for a process or for all processes
+* **tail [process] | all** - tail output for a process or for all processes
+* **untail [process] | all** - end tail output for a specific processes or for all processes
+* **grep 'search string' [process]** - searches a processes log or all processe logs
+* **exit** - termiate all managed process and exit
 
 
 ## Mixed Containers and Processes
