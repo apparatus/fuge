@@ -7,11 +7,12 @@
     "manager",
     "generator"
   ],
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "MIT",
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
-    "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)"
+    "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)",
+    "David Mark Clements <david.clements@nearform.com> (http://davidmarkclements.com)"
   ],
   "main": "./fuge.js",
   "engines": {
