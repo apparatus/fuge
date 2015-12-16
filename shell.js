@@ -58,10 +58,10 @@ module.exports = function() {
     console.log('  ps - list managed processes and containers');
     console.log('  proxy - list proxy status and port forwarding');
     console.log('  info - list environment block injected into each process');
-    console.log('  stop [process] - stop a process and its watcher');
+    console.log('  stop [process] count - stop [count] process instances and watchers');
     console.log('  stop all - stop all processs and watching');
-    console.log('  start [process] - start a process with watch');
-    console.log('  start all - start all processes with watch');
+    console.log('  start [process] [count] - start [count] processes with watch');
+    console.log('  start all [count] - start all [count] processes with watch');
     console.log('  debug [process] - start a process in debug mode');
     console.log('  watch - turn on watching for a process');
     console.log('  unwatch - turn off watching for a process');
@@ -78,8 +78,10 @@ module.exports = function() {
 
   var psList = function(args, system, cb) {
     var table = new cliTable({chars: tableChars, style: tableStyle,
-                              head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15]});
+                              head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white, 'count'.white], colWidths: [30, 15, 15, 15, 15, 5]});
     var procs = _runner.processes();
+    var counts = _.countBy(_.keys(procs), function(key) { return procs[key].identifier; });
+
     _.each(system.topology.containers, function(container) {
       if (!(container.name === '__proxy' || container.type === 'blank-container')) {
         if (container.type === 'docker' && _config.runDocker === false) {
@@ -93,14 +95,16 @@ module.exports = function() {
                         container.type.green, 
                         'running'.green, 
                         proc.monitor ? 'yes'.green : 'no'.red,
-                        proc.tail ? 'yes'.green : 'no'.red]);
+                        proc.tail ? 'yes'.green : 'no'.red,
+                        counts[container.name] ? ('' + counts[container.name]).green : '0'.red]);
           }
           else {
             table.push([container.name.red, 
                         container.type.red, 
                         'stopped'.red, 
                         container.monitor ? 'yes'.green : 'no'.red,
-                        container.tail ? 'yes'.green : 'no'.red]);
+                        container.tail ? 'yes'.green : 'no'.red,
+                        '0'.red]);
           }
         }
       }
@@ -151,7 +155,7 @@ module.exports = function() {
       });
     }
     else {
-      _runner.stop(system, args[1], function(err) {
+      _runner.stop(system, args[1], args[2] || 1, function(err) {
         cb(err);
       });
     }
@@ -161,12 +165,12 @@ module.exports = function() {
 
   var startProcess = function(args, system, cb) { 
     if (args.length === 1 || args[1] === 'all') {
-      _runner.startAll(system, function(err) {
+      _runner.startAll(system, args[2] || 1, function(err) {
         cb(err);
       });
     }
     else {
-      _runner.start(system, args[1], function(err) {
+      _runner.start(system, args[1], args[2] || 1, function(err) {
         cb(err);
       });
     }
