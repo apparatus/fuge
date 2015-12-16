@@ -25,6 +25,8 @@ var util = require('./util')();
 var yaml = require('yamljs');
 var spawn = require('child_process').spawn;
 
+process.env.PATH = path.join(__dirname, 'node_modules', '.bin') + ':' + process.env.PATH;
+
 var generators = Object.keys(require('./package.json').dependencies)
   .filter(function (dep) { return /generator-/.test(dep)})
   .map(function(gen) { return gen.replace(/generator-/, '') });
