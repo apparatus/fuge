@@ -229,7 +229,7 @@ module.exports = function() {
       _runner.tailAll(system);
     }
     else if (args.length >= 2) {
-      err = _runner.tail(system, args[1]);
+      err = _runner.tail(system, args[1], args[2] || 0);
     }
     cb(err);
   };
