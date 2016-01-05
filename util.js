@@ -36,6 +36,11 @@ module.exports = function() {
           console.log('overriding build command for: ' + container.name + ' to: ' + config.overrides[container.name].build);
           container.specific.buildScript = config.overrides[container.name].build;
         }
+
+        if (config.overrides[container.name].delay) {
+          console.log('adding delay of ' + config.overrides[container.name].delay + 'ms for: ' + container.name);
+          container.specific.execute.delay = config.overrides[container.name].delay;
+        }
       }
 
       if (config && config.tail) {
