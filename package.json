@@ -52,11 +52,11 @@
     "fuge": "./fuge.js"
   },
   "scripts": {
-    "lint": "jshint **/*.js",
-    "test": "jshint **/*.js && node test",
+    "lint": "jshint *.js && jshint **/*.js",
+    "test": "jshint *.js && jshint **/*.js && node test",
     "coverage": "istanbul cover test/*Test.js && open ./coverage/lcov-report/index.html",
     "coverage-check": "istanbul cover test/*Test.js && istanbul check-coverage",
-    "commit-check": "jshint **/*.js"
+    "commit-check": "npm run lint"
   },
   "devDependencies": {
     "del": "^2.1.0",

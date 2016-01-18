@@ -17,7 +17,7 @@
 var _ = require('lodash');
 var inquirer = require('inquirer');
 var cleanupHandler = require('death');
-var cliTable = require('cli-table');
+var CliTable = require('cli-table');
 require('colors');
 
 
@@ -77,7 +77,7 @@ module.exports = function() {
 
 
   var psList = function(args, system, cb) {
-    var table = new cliTable({chars: tableChars, style: tableStyle,
+    var table = new CliTable({chars: tableChars, style: tableStyle,
                               head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white, 'count'.white], colWidths: [30, 15, 15, 15, 15, 5]});
     var procs = _runner.processes();
     var counts = _.countBy(_.keys(procs), function(key) { return procs[key].identifier; });
