@@ -15,8 +15,8 @@
 'use strict';
 
 var _ = require('lodash');
-var inquirer = require('inquirer');
 var cleanupHandler = require('death');
+var Vorpal = require('vorpal');
 var CliTable = require('cli-table');
 require('colors');
 
@@ -31,6 +31,7 @@ module.exports = function() {
   var _config;
   var _runner;
   var _proxy;
+  var vorpal = Vorpal();
   var tableChars = { 'top': '' , 'top-mid': '' , 'top-left': '' , 'top-right': '',
                      'bottom': '' , 'bottom-mid': '' , 'bottom-left': '' , 'bottom-right': '',
                      'left': '' , 'left-mid': '' , 'mid': '' , 'mid-mid': '',
@@ -53,29 +54,6 @@ module.exports = function() {
 
 
 
-  var showHelp = function(args, system, cb) {
-    console.log('available commands:');
-    console.log('  ps - list managed processes and containers');
-    console.log('  proxy - list proxy status and port forwarding');
-    console.log('  info - list environment block injected into each process');
-    console.log('  stop [process] count - stop [count] process instances and watchers');
-    console.log('  stop all - stop all processs and watching');
-    console.log('  start [process] [count] - start [count] processes with watch');
-    console.log('  start all [count] - start all [count] processes with watch');
-    console.log('  debug [process] - start a process in debug mode');
-    console.log('  watch - turn on watching for a process');
-    console.log('  unwatch - turn off watching for a process');
-    console.log('  tail - tail output for all processes');
-    console.log('  untail [process] - tail output for a specific processes');
-    console.log('  grep - searches all logs');
-    console.log('  grep [processname] - searches specific logs');
-    console.log('  send [process] [message] - sends a message to a specific process');
-    console.log('  exit - termiate all managed process and exit');
-    cb();
-  };
-
-
-
   var psList = function(args, system, cb) {
     var table = new CliTable({chars: tableChars, style: tableStyle,
                               head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white, 'count'.white], colWidths: [30, 15, 15, 15, 15, 5]});
@@ -91,17 +69,17 @@ module.exports = function() {
           var procKey = _.find(_.keys(procs), function(key) { return procs[key].identifier === container.name; });
           if (procKey) {
             var proc = procs[procKey];
-            table.push([container.name.green, 
-                        container.type.green, 
-                        'running'.green, 
+            table.push([container.name.green,
+                        container.type.green,
+                        'running'.green,
                         proc.monitor ? 'yes'.green : 'no'.red,
                         proc.tail ? 'yes'.green : 'no'.red,
                         counts[container.name] ? ('' + counts[container.name]).green : '0'.red]);
           }
           else {
-            table.push([container.name.red, 
-                        container.type.red, 
-                        'stopped'.red, 
+            table.push([container.name.red,
+                        container.type.red,
+                        'stopped'.red,
                         container.monitor ? 'yes'.green : 'no'.red,
                         container.tail ? 'yes'.green : 'no'.red,
                         '0'.red]);
@@ -148,7 +126,7 @@ module.exports = function() {
 
 
 
-  var stopProcess = function(args, system, cb) { 
+  var stopProcess = function(args, system, cb) {
     if (args.length === 1 || args[1] === 'all') {
       _runner.stopAll(system, function(err) {
         cb(err);
@@ -163,7 +141,7 @@ module.exports = function() {
 
 
 
-  var startProcess = function(args, system, cb) { 
+  var startProcess = function(args, system, cb) {
     if (args.length === 1 || args[1] === 'all') {
       _runner.startAll(system, args[2] || 1, function(err) {
         cb(err);
@@ -178,7 +156,7 @@ module.exports = function() {
 
 
 
-  var debugProcess = function(args, system, cb) { 
+  var debugProcess = function(args, system, cb) {
     if (args.length === 2) {
       if (!_runner.isProcessRunning(args[1])) {
         _runner.debug(system, args[1], function(err) {
@@ -197,7 +175,7 @@ module.exports = function() {
 
 
 
-  var watchProcess = function(args, system, cb) { 
+  var watchProcess = function(args, system, cb) {
     var err = null;
     if (args.length === 1 || args[1] === 'all') {
       _runner.watchAll(system);
@@ -257,8 +235,8 @@ module.exports = function() {
       _runner.grep(args[2], _config, args[1], cb);
     }
   };
-    
-    
+
+
 
   var sendMessage = function(args, system, cb) {
     console.log('not implemented');
@@ -272,22 +250,72 @@ module.exports = function() {
   };
 
 
-
-  var commands = {'': noop,
-                  help: showHelp,
-                  ps: psList, 
-                  proxy: proxy, 
-                  info: showInfo,
-                  stop: stopProcess,
-                  start: startProcess,
-                  debug: debugProcess,
-                  watch: watchProcess,
-                  unwatch: unwatchProcess,
-                  tail: tailProcess,
-                  untail: untailProcess,
-                  grep: grepLogs,
-                  send: sendMessage,
-                  exit: shutdown};
+  var commands = [{
+                    command: 'ps',
+                    action: psList,
+                    description: 'list managed processes and containers'
+                  },
+                  {
+                    command: 'proxy',
+                    action: proxy,
+                    description: 'list proxy status and port forwarding'
+                  },
+                  {
+                    command: 'info',
+                    action: showInfo,
+                    description: 'list environment block injected into each process'
+                  },
+                  {
+                    command: 'stop',
+                    action: stopProcess,
+                    description: 'stop [count] process instances and watchers'
+                  },
+                  {
+                    command: 'start',
+                    action: startProcess,
+                    description: 'start [count] processes with watch'
+                  },
+                  {
+                    command: 'debug <process>',
+                    action: debugProcess,
+                    description: 'start a process in debug mode'
+                  },
+                  {
+                    command: 'watch',
+                    action: watchProcess,
+                    description: 'turn on watching for a process'
+                  },
+                  {
+                    command: 'unwatch',
+                    action: unwatchProcess,
+                    description: 'turn off watching for a process'
+                  },
+                  {
+                    command: 'tail',
+                    action: tailProcess,
+                    description: 'tail output for all processes'
+                  },
+                  {
+                    command: 'untail <process>',
+                    action: untailProcess,
+                    description: 'tail output for a specific processes'
+                  },
+                  {
+                    command: 'grep [processname]',
+                    action: grepLogs,
+                    description: 'searches logs for specific process or all logs'
+                  },
+                  {
+                    command: 'send <process> <message>',
+                    action: sendMessage,
+                    description: 'sends a message to a specific process'
+                  },
+                  {
+                    command: 'exit',
+                    action: shutdown,
+                    description: 'termiate all managed process and exit'
+                  }
+              ];
 
 
 
@@ -305,15 +333,16 @@ module.exports = function() {
 
 
 
-  var replLoop = function(system, config) {
-    inquirer.prompt({type: 'input', name: 'command', message: 'fuge>', validate: validateInput}, function(response) {
-      var s = response.command.split(' ');
-      commands[s[0]](s, system, function(err){
-        if (err) { console.log(err); }
-        response.command = null;
+  var repl = function(system, config) {
+    vorpal.delimiter('fuge>').show();
 
-        replLoop(system, config);
-      });
+    commands.forEach(function (com) {
+      vorpal
+        .command(com.command)
+        .description(com.description)
+        .action(function (args, cb) {
+          com.action(system, args, cb);
+        });
     });
   };
 
@@ -332,7 +361,7 @@ module.exports = function() {
     _proxy.startAll(system, function(err) {
       if (err) { console.log(err); process.exit(0); }
       console.log('starting shell..');
-      replLoop(system, config);
+      repl(system, config);
     });
 
   };
@@ -366,5 +395,3 @@ module.exports = function() {
     runSingleCommand: runSingleCommand
   };
 };
-
-
