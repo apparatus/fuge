@@ -47,11 +47,11 @@ module.exports = function() {
   };
 
 
-
+/* NO LONGER USED
   var noop = function(args, system, cb) {
     cb();
   };
-
+*/
 
 
   var psList = function(args, system, cb) {
@@ -311,14 +311,14 @@ module.exports = function() {
                     description: 'sends a message to a specific process'
                   },
                   {
-                    command: 'exit',
+                    command: 'quit',
                     action: shutdown,
                     description: 'termiate all managed process and exit'
                   }
               ];
 
 
-
+/* NO LONGER USED
   var validateInput = function(value) {
     if (value === '') { return true; }
 
@@ -330,18 +330,18 @@ module.exports = function() {
       return 'invalid command';
     }
   };
-
+*/
 
 
   var repl = function(system, config) {
-    vorpal.delimiter('fuge>').show();
+    vorpal.delimiter('?'.green +' fuge>').show();
 
     commands.forEach(function (com) {
       vorpal
         .command(com.command)
         .description(com.description)
         .action(function (args, cb) {
-          com.action(system, args, cb);
+          com.action(args, system, cb);
         });
     });
   };
