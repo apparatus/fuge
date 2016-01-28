@@ -11,7 +11,6 @@
 * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
-
 'use strict';
 
 var _ = require('lodash');
@@ -238,12 +237,6 @@ module.exports = function() {
         };
 
 
-
-        var shutdown = function(args, system, cb) {
-          stopSystem(system, cb);
-        };
-
-
         var commands = [{
           command: 'ps',
           action: psList,
@@ -305,8 +298,7 @@ module.exports = function() {
           description: 'sends a message to a specific process'
         },
         {
-          command: 'quit',
-          action: shutdown,
+          command: '"exit"',
           description: 'termiate all managed process and exit'
         }
       ];

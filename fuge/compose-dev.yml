@@ -1,0 +1,9 @@
+frontend:
+  build: ../site/
+  container_name: site
+service1:
+  build: ../service1/
+  container_name: service1
+service2:
+  build: ../service2/
+  container_name: service2
