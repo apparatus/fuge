@@ -108,7 +108,7 @@ The fuge shell supports the following commands:
 * **tail [process] | all** - tail output for a process or for all processes
 * **untail [process] | all** - end tail output for a specific processes or for all processes
 * **grep 'search string' [process]** - searches a processes log or all processe logs
-* **exit** - termiate all managed process and exit
+* **quit** - termiate all managed process and exit
 
 
 ## Mixed Containers and Processes
