@@ -22,3 +22,4 @@ app/bower_components
 options.mine.js
 db/
 data/
+docker-compose.yml

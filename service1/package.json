@@ -1,0 +1,39 @@
+{
+  "name": "service1",
+  "description": "my awesome service",
+  "keywords": [
+    "awesome",
+    "service"
+  ],
+  "license": "MIT",
+  "version": "0.1.0",
+  "main": "./service.js",
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "seneca": "^0.7.1",
+    "seneca-env-plugins": "0.0.0"
+  },
+  "repository": {
+    "private": true
+  },
+  "scripts": {
+    "lint": "jshint **/*.js",
+    "test": "jshint **/*.js && tape test/*Test.js",
+    "coverage": "istanbul cover tape test/*Test.js && open ./coverage/lcov-report/index.html",
+    "coverage-check": "istanbul cover tape test/*Test.js && istanbul check-coverage",
+    "commit-check": "jshint **/*.js && istanbul cover tape test/*Test.js && istanbul check-coverage"
+  },
+  "pre-commit": [
+    "commit-check"
+  ],
+  "devDependencies": {
+    "pre-commit": "^1.1.1",
+    "tape": "^4.2.0"
+  }
+}
+
+
+
+

@@ -1,0 +1,29 @@
+#content {
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-top: 10px;
+}
+
+#footer {
+  max-width: 1024px;
+  margin: 0 auto;
+  height: 5.3em;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  padding-top: .625em;
+}
+
+#fuge {
+  float: right;
+}
+
+#fuge-logo {
+  width: 6em;
+  margin-bottom: .25em;
+}
