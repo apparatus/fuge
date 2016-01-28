@@ -18,8 +18,7 @@ mochahelper.js
 dist
 .tmp
 .sass-cache
-app/bower_components
+bower_components
 options.mine.js
 db/
 data/
-docker-compose.yml
