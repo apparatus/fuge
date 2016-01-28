@@ -350,7 +350,7 @@ module.exports = function() {
 
 
       var repl = function(system) {
-        vorpal.delimiter('?'.green.inverse +' fuge>').show();
+        vorpal.delimiter('?'.cyan.inverse +' fuge>'.bold.inverse).show();
         commands.forEach(function (com) {
           //creates a vorpal instance for each object in commands
           if (com.command === 'start' || com.command === 'watch'||
