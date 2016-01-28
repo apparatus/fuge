@@ -270,7 +270,7 @@ module.exports = function() {
           description: 'start [count] processes with watch'
         },
         {
-          command: 'debug <process>',
+          command: 'debug',
           action: debugProcess,
           description: 'start a process in debug mode'
         },
@@ -290,17 +290,17 @@ module.exports = function() {
           description: 'tail output for all processes'
         },
         {
-          command: 'untail <process>',
+          command: 'untail',
           action: untailProcess,
           description: 'tail output for a specific processes'
         },
         {
-          command: 'grep [processname]',
+          command: 'grep',
           action: grepLogs,
           description: 'searches logs for specific process or all logs'
         },
         {
-          command: 'send <process> <message>',
+          command: 'send',
           action: sendMessage,
           description: 'sends a message to a specific process'
         },
@@ -311,25 +311,66 @@ module.exports = function() {
         }
       ];
 
-
+      var inputStructure = function(command, type, description, action, system){
+        // structures the commands and creates the vorpal instances
+        if (type !== null){
+          vorpal
+          .command(command + type)
+          .description(description)
+          .action(function (args, cb) {
+            var opt = args.process; // optional argument
+            var arr = [command];
+            if (command === 'send'){
+              if (opt !== undefined){
+                for (var i=0; i<opt.length; i++){
+                  arr.push(opt[i]);
+                }
+              }
+              action(arr, system, cb);
+            }
+            else {
+              if (opt !== undefined){
+                arr.push(opt);
+              }
+              action(arr, system, cb);
+            }
+          });
+        }
+        // if no additional arguments are available
+        else {
+        vorpal
+        .command(command)
+        .description(description)
+        .action(function (args, cb) {
+          var arr = [command];
+          action(arr, system, cb);
+        });
+      }
+    };
 
 
       var repl = function(system) {
         vorpal.delimiter('?'.green.inverse +' fuge>').show();
         commands.forEach(function (com) {
-          vorpal
-          .command(com.command + '[command...]')
-          .description(com.description)
-          .action(function (args, cb) {
-            var opt = args.command;
-            var arr = [com.command];
-            if (opt !== undefined){
-              for (var i=0; i<opt.length; i++){
-                arr.push(opt[i]);
-              }
-            }
-            com.action(arr, system, cb);
-          });
+          //creates a vorpal instance for each object in commands
+          if (com.command === 'start' || com.command === 'watch'||
+          com.command === 'unwatch' || com.command === 'grep'||
+          com.command === 'stop'  || com.command === 'info'){
+            inputStructure(com.command,'[process]',
+             com.description, com.action, system);
+          }
+          else if (com.command === 'debug' || com.command === 'untail') {
+            inputStructure(com.command,'<process>',
+             com.description, com.action, system);
+          }
+          else if (com.command === 'send') {
+            inputStructure(com.command,'<process> <message>',
+             com.description, com.action, system);
+          }
+          else {
+            inputStructure(com.command,null, com.description,
+               com.action, system);
+          }
         });
       };
 
