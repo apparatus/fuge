@@ -83,6 +83,7 @@ module.exports = function(composeFile) {
   };
 
   var transportSelection = function transportSelection(label, opts) {
+    /*
     label = label || 'System';
     opts = opts || {};
     var def = opts.def = opts.def || 'http';
@@ -97,7 +98,8 @@ module.exports = function(composeFile) {
     if (transports.indexOf(transport) === -1) {
       return transportSelection(label, opts);
     }
-    return transport;
+    */
+    return 'http';
   };
 
   var createService = function(srv, cwd, cb) {
