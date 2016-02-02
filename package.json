@@ -12,7 +12,7 @@
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
     "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)",
-    "David Mark Clements <david.clements@nearform.com> (http://davidmarkclements.com)"
+    "David Mark Clements <david.clements@nearform.com> (http://davidmarkclements.com)",
     "Matthew O'Connor (https://github.com/matthewoconnor-development)"
   ],
   "main": "./fuge.js",
