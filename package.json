@@ -7,7 +7,7 @@
     "manager",
     "generator"
   ],
-  "version": "0.4.6",
+  "version": "0.5.0",
   "license": "MIT",
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
@@ -28,9 +28,9 @@
     "fastseries": "^1.7.0",
     "fuge-proxy": "^0.4.0",
     "fuge-runner": "^0.5.0",
-    "generator-fuge": "^0.2.0",
-    "generator-hapi-seneca": "^0.2.1",
-    "generator-seneca-http": "^0.2.1",
+    "generator-fuge": "^0.3.0",
+    "generator-hapi-seneca": "^0.3.0",
+    "generator-seneca-http": "^0.3.0",
     "generator-seneca-metrics": "^0.0.0",
     "generator-seneca-redis": "^0.0.3",
     "generator-vidi-dashboard": "^0.0.3",
