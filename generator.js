@@ -39,7 +39,7 @@ var NONE = 0;
 var LOW = 1;
 var MEDIUM = 2;
 var HIGH = 3;
-var TRANSPORTS = ['http', 'redis'];
+//var TRANSPORTS = ['http', 'redis'];
 
 module.exports = function(composeFile) {
   var runYo = util.runYo;
