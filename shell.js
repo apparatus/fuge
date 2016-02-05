@@ -287,7 +287,8 @@ module.exports = function() {
                   untail: untailProcess,
                   grep: grepLogs,
                   send: sendMessage,
-                  exit: shutdown};
+                  exit: shutdown,
+                  quit: shutdown};
 
 
 
