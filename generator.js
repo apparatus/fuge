@@ -39,7 +39,7 @@ var NONE = 0;
 var LOW = 1;
 var MEDIUM = 2;
 var HIGH = 3;
-//var TRANSPORTS = ['http', 'redis'];
+var TRANSPORTS = ['http', 'redis'];
 
 module.exports = function(composeFile) {
   var runYo = util.runYo;
@@ -83,7 +83,6 @@ module.exports = function(composeFile) {
   };
 
   var transportSelection = function transportSelection(label, opts) {
-    /*
     label = label || 'System';
     opts = opts || {};
     var def = opts.def = opts.def || 'http';
@@ -98,8 +97,7 @@ module.exports = function(composeFile) {
     if (transports.indexOf(transport) === -1) {
       return transportSelection(label, opts);
     }
-    */
-    return 'http';
+    return transport;
   };
 
   var createService = function(srv, cwd, cb) {
@@ -113,8 +111,9 @@ module.exports = function(composeFile) {
       cwd: cwd
     });
 
-    runYo(env, 'seneca-' + transport, {
-      name: srv.name
+    runYo(env, 'seneca-http', {
+      name: srv.name,
+      transport: transport
     }, function() {
 
       var definition = createServiceDefinition(name);
@@ -123,6 +122,7 @@ module.exports = function(composeFile) {
         fs.appendFileSync(composeFile, definition);
         return cb && cb();
       }
+      return transport;
 
       console.log('add the following to compose-dev.yml to enable this service: ');
       console.log();
@@ -230,7 +230,8 @@ module.exports = function(composeFile) {
       });
 
       runYo(hapiEnv, 'hapi-seneca', {
-        name: 'site'
+        name: 'site',
+        transport: transport
       }, function() {
         console.log('');
         console.log('system generated !!');
