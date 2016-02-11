@@ -419,7 +419,7 @@ module.exports = function(composeFile) {
     var interactivity = determineInteractivity(args.i);
 
     var transport = (interactivity && interactivity <= MEDIUM) ?
-      transportSelection() :
+      transportSelection('System', { mixed: false }) :
       'http';
 
     var fuge = path.join(cwd, 'fuge');
