@@ -32,7 +32,6 @@
     "generator-hapi-seneca": "^0.3.0",
     "generator-seneca-http": "^0.3.0",
     "generator-seneca-metrics": "^0.0.0",
-    "generator-seneca-redis": "^0.0.3",
     "generator-vidi-dashboard": "^0.0.3",
     "incite": "^2.0.0",
     "inquirer": "^0.11.0",
