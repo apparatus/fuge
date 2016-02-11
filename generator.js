@@ -121,14 +121,14 @@ module.exports = function(composeFile) {
       if (appendToCompose && fs.existsSync(composeFile)) {
         fs.appendFileSync(composeFile, definition);
         return cb && cb();
+      } else {
+        console.log('add the following to compose-dev.yml to enable this service: ');
+        console.log();
+        console.log(definition);
+        console.log();
+        if (cb) { cb(); }
       }
       return transport;
-
-      console.log('add the following to compose-dev.yml to enable this service: ');
-      console.log();
-      console.log(definition);
-      console.log();
-      if (cb) { cb(); }
     });
 
   };
