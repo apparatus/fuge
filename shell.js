@@ -239,8 +239,6 @@ module.exports = function() {
   };
 
 
-
-
   var commands = [{
     command: 'ps',
     action: psList,
@@ -301,10 +299,6 @@ module.exports = function() {
     action: sendMessage,
     description: 'sends a message to a specific process'
   },
-  {
-    command: '"exit"',
-    description: 'exit instance of Fuge'
-  }
 ];
 
 

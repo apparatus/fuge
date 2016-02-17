@@ -111,8 +111,9 @@ module.exports = function(composeFile) {
       cwd: cwd
     });
 
-    runYo(env, 'seneca-' + transport, {
-      name: srv.name
+    runYo(env, 'seneca-http', {
+      name: srv.name,
+      transport: transport
     }, function() {
 
       var definition = createServiceDefinition(name);
@@ -120,13 +121,14 @@ module.exports = function(composeFile) {
       if (appendToCompose && fs.existsSync(composeFile)) {
         fs.appendFileSync(composeFile, definition);
         return cb && cb();
+      } else {
+        console.log('add the following to compose-dev.yml to enable this service: ');
+        console.log();
+        console.log(definition);
+        console.log();
+        if (cb) { cb(); }
       }
-
-      console.log('add the following to compose-dev.yml to enable this service: ');
-      console.log();
-      console.log(definition);
-      console.log();
-      if (cb) { cb(); }
+      return transport;
     });
 
   };
@@ -228,7 +230,8 @@ module.exports = function(composeFile) {
       });
 
       runYo(hapiEnv, 'hapi-seneca', {
-        name: 'site'
+        name: 'site',
+        transport: transport
       }, function() {
         console.log('');
         console.log('system generated !!');
@@ -416,7 +419,7 @@ module.exports = function(composeFile) {
     var interactivity = determineInteractivity(args.i);
 
     var transport = (interactivity && interactivity <= MEDIUM) ?
-      transportSelection() :
+      transportSelection('System', { mixed: false }) :
       'http';
 
     var fuge = path.join(cwd, 'fuge');
