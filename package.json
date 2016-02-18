@@ -12,7 +12,8 @@
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
     "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)",
-    "David Mark Clements <david.clements@nearform.com> (http://davidmarkclements.com)"
+    "David Mark Clements <david.clements@nearform.com> (http://davidmarkclements.com)",
+    "Matthew O'Connor (https://github.com/matthewoconnor-development)"
   ],
   "main": "./fuge.js",
   "engines": {
@@ -34,11 +35,11 @@
     "generator-seneca-metrics": "^0.0.0",
     "generator-vidi-dashboard": "^0.0.3",
     "incite": "^2.0.0",
-    "inquirer": "^0.11.0",
     "lodash": "^3.10.1",
     "minimist": "^1.2.0",
     "ordinal": "0.0.2",
     "positive": "^1.0.9",
+    "vorpal": "^1.5.5",
     "xenotype": "^0.4.0",
     "yamljs": "^0.2.4",
     "yeoman-environment": "^1.2.7"
