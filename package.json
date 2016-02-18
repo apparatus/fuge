@@ -31,6 +31,7 @@
     "fuge-runner": "^0.6.2",
     "generator-fuge": "^0.3.2",
     "generator-hapi-seneca": "^0.3.0",
+    "generator-fuge-static": "^0.3.0",
     "generator-seneca-http": "^0.3.0",
     "generator-seneca-metrics": "^0.0.0",
     "generator-vidi-dashboard": "^0.0.3",

@@ -219,9 +219,29 @@ module.exports = function(composeFile) {
       };
     });
 
+    services.push(genAPI);
     services.push(genSite);
 
     series(services, cb);
+
+    function genAPI(cb) {
+      fs.mkdirSync(cwd + '/api');
+      var hapiEnv = createEnv({
+        cwd: cwd + '/api'
+      });
+
+      runYo(hapiEnv, 'hapi-seneca', {
+        name: 'api',
+        transport: transport
+      }, function() {
+        console.log('');
+        console.log('system generated !!');
+        console.log('spin it up with : fuge run ./fuge/compose-dev.yml');
+        console.log('');
+        console.log('Have an awesome day, you\'re welcome.');
+        cb();
+      });
+    }
 
     function genSite(cb) {
       fs.mkdirSync(cwd + '/site');
@@ -229,7 +249,7 @@ module.exports = function(composeFile) {
         cwd: cwd + '/site'
       });
 
-      runYo(hapiEnv, 'hapi-seneca', {
+      runYo(hapiEnv, 'fuge-static', {
         name: 'site',
         transport: transport
       }, function() {
