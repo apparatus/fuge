@@ -53,8 +53,6 @@ module.exports = function() {
     });
   };
 
-
-
   var compile = function(args, cb) {
     var yamlPath = args[0] || process.cwd() + '/docker-compose.yml';
     var configPath = (path.dirname(args[0]) || process.cwd()) + '/fuge-config.js';
@@ -81,9 +79,17 @@ module.exports = function() {
   };
 
   var locateGenerator = function locateGenerator(name) {
+    var gen = 'app';
     if (!/generator-/.test(name)) { name = 'generator-' + name; }
+
+    if (/:/.test(name)) {
+      var split = name.split(':');
+      name = split[0];
+      gen = split[1];
+    }
+
     return require.resolve(
-      path.join(__dirname, 'node_modules', name, 'generators', 'app', 'index.js')
+      path.join(__dirname, 'node_modules', name, 'generators', gen, 'index.js')
     );
   };
 
