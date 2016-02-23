@@ -29,7 +29,7 @@
     "fastseries": "^1.7.0",
     "fuge-proxy": "^0.4.0",
     "fuge-runner": "^0.6.2",
-    "generator-fuge": "^0.3.2",
+    "generator-fuge": "^0.4.0",
     "generator-seneca-http": "^0.3.0",
     "generator-seneca-metrics": "^0.0.0",
     "generator-vidi-dashboard": "^0.0.3",
