@@ -27,13 +27,14 @@ var spawn = require('child_process').spawn;
 
 process.env.PATH = path.join(__dirname, 'node_modules', '.bin') + ':' + process.env.PATH;
 
-var generators = Object.keys(require('./package.json').dependencies)
-  .filter(function(dep) {
-    return /generator-/.test(dep);
-  })
-  .map(function(gen) {
-    return gen.replace(/generator-/, '');
-  });
+var generators = [
+  'fuge:app',
+  'fuge:rest',
+  'fuge:static',
+  'seneca-http:app',
+  'seneca-metrics:app',
+  'vidi-dashboard:app'
+];
 
 var NONE = 0;
 var LOW = 1;
@@ -219,9 +220,29 @@ module.exports = function(composeFile) {
       };
     });
 
+    services.push(genAPI);
     services.push(genSite);
 
     series(services, cb);
+
+    function genAPI(cb) {
+      fs.mkdirSync(cwd + '/api');
+      var hapiEnv = createEnv({
+        cwd: cwd + '/api'
+      });
+
+      runYo(hapiEnv, 'fuge:rest', {
+        name: 'api',
+        transport: transport
+      }, function() {
+        console.log('');
+        console.log('system generated !!');
+        console.log('spin it up with : fuge run ./fuge/compose-dev.yml');
+        console.log('');
+        console.log('Have an awesome day, you\'re welcome.');
+        cb();
+      });
+    }
 
     function genSite(cb) {
       fs.mkdirSync(cwd + '/site');
@@ -229,7 +250,7 @@ module.exports = function(composeFile) {
         cwd: cwd + '/site'
       });
 
-      runYo(hapiEnv, 'hapi-seneca', {
+      runYo(hapiEnv, 'fuge:static', {
         name: 'site',
         transport: transport
       }, function() {
