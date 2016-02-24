@@ -347,7 +347,8 @@ module.exports = function() {
       //creates a vorpal instance for each object in commands
       if (com.command === 'start' || com.command === 'watch'||
       com.command === 'unwatch' || com.command === 'grep'||
-      com.command === 'stop'  || com.command === 'info'){
+      com.command === 'stop'  || com.command === 'info' || 
+      com.command === 'tail'){
         inputStructure(com.command,'[process]',
           com.description, com.action, system);
       }
