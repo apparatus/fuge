@@ -31,7 +31,7 @@ var generators = [
   'fuge:app',
   'fuge:rest',
   'fuge:static',
-  'seneca-http:app',
+  'fuge:service',
   'seneca-metrics:app',
   'vidi-dashboard:app'
 ];
@@ -40,7 +40,7 @@ var NONE = 0;
 var LOW = 1;
 var MEDIUM = 2;
 var HIGH = 3;
-var TRANSPORTS = ['http', 'redis'];
+var FRAMEWORKS = ['hapi', 'express'];
 
 module.exports = function(composeFile) {
   var runYo = util.runYo;
@@ -83,27 +83,27 @@ module.exports = function(composeFile) {
     '  container_name: __SERVICE__').replace(/__SERVICE__/g, name);
   };
 
-  var transportSelection = function transportSelection(label, opts) {
-    label = label || 'System';
+  var frameworkSelection = function frameworkSelection(label, opts) {
+    label = label || 'Web';
     opts = opts || {};
-    var def = opts.def = opts.def || 'http';
+    var def = opts.def = opts.def || 'hapi';
     var mixed = 'mixed' in opts ? opts.mixed : true;
 
-    var transports = TRANSPORTS.slice();
+    var frameworks = FRAMEWORKS.slice();
     if (mixed) {
-      transports.push('mixed');
+      frameworks.push('mixed');
     }
-    var transport = prompt(inq(label + ' transport', transport, transports)) || def;
+    var framework = prompt(inq(label + ' framework', framework, frameworks)) || def;
 
-    if (transports.indexOf(transport) === -1) {
-      return transportSelection(label, opts);
+    if (frameworks.indexOf(framework) === -1) {
+      return frameworkSelection(label, opts);
     }
-    return transport;
+    return framework;
   };
 
   var createService = function(srv, cwd, cb) {
     var name = srv.name;
-    var transport = srv.transport;
+    var framework = srv.framework;
     var appendToCompose = srv.appendToCompose;
 
     fs.mkdirSync(cwd);
@@ -112,9 +112,9 @@ module.exports = function(composeFile) {
       cwd: cwd
     });
 
-    runYo(env, 'seneca-http', {
+    runYo(env, 'fuge:service', {
       name: srv.name,
-      transport: transport
+      framework: framework
     }, function() {
 
       var definition = createServiceDefinition(name);
@@ -129,7 +129,7 @@ module.exports = function(composeFile) {
         console.log();
         if (cb) { cb(); }
       }
-      return transport;
+      return framework;
     });
 
   };
@@ -137,11 +137,11 @@ module.exports = function(composeFile) {
   var defineService = function(label, interactivity, srv) {
     return {
       name: (interactivity >= MEDIUM) && prompt(inq(label + ' name', srv.name)) || srv.name,
-      transport: (srv.transport === 'mixed' || interactivity >= HIGH) ?
-        transportSelection(srv.name, {
+      framework: (srv.framework === 'mixed' || interactivity >= HIGH) ?
+        frameworkSelection(srv.name, {
           mixed: false
         }) :
-        srv.transport,
+        srv.framework,
       appendToCompose: (interactivity >= HIGH) ?
         ask(inq('append ' + srv.name + ' to compose-dev.yml?:', ['y', 'n'])) :
         srv.appendToCompose
@@ -152,7 +152,7 @@ module.exports = function(composeFile) {
     args = args || {};
     var srv = {
       name: args.name || 'service' + (Math.random() * 1e17).toString(32).substr(6),
-      transport: args.transport || 'http',
+      framework: args.framework || 'hapi',
       appendToCompose: true
     };
 
@@ -187,18 +187,18 @@ module.exports = function(composeFile) {
   var generateServices = function(opts, cb) {
     var interactivity = opts.interactivity;
     var cwd = opts.cwd;
-    var transport = opts.transport;
+    var framework = opts.framework;
 
     var services = [defineService('1st service', interactivity, {
       name: 'service1',
-      transport: transport || 'http',
+      framework: framework || 'hapi',
       appendToCompose: true
     })];
 
     if (interactivity <= LOW) {
       services.push(defineService('2nd service', interactivity, {
         name: 'service2',
-        transport: transport,
+        framework: framework,
         appendToCompose: true
       }));
     }
@@ -207,7 +207,7 @@ module.exports = function(composeFile) {
       while (ask(inq('add another service?', ['y', 'n']))) {
         services.push(defineService(ord(services.length + 1) + ' service', interactivity, {
           name: 'service' + (services.length + 1),
-          transport: transport,
+          framework: framework,
           appendToCompose: true
         }));
       }
@@ -233,7 +233,7 @@ module.exports = function(composeFile) {
 
       runYo(hapiEnv, 'fuge:rest', {
         name: 'api',
-        transport: transport
+        framework: framework
       }, function() {
         console.log('');
         console.log('system generated !!');
@@ -252,7 +252,7 @@ module.exports = function(composeFile) {
 
       runYo(hapiEnv, 'fuge:static', {
         name: 'site',
-        transport: transport
+        framework: framework
       }, function() {
         console.log('');
         console.log('system generated !!');
@@ -439,9 +439,9 @@ module.exports = function(composeFile) {
     var cwd = process.cwd();
     var interactivity = determineInteractivity(args.i);
 
-    var transport = (interactivity && interactivity <= MEDIUM) ?
-      transportSelection('System', { mixed: false }) :
-      'http';
+    var framework = (interactivity && interactivity <= MEDIUM) ?
+      frameworkSelection('Web', { mixed: false }) :
+      'hapi';
 
     var fuge = path.join(cwd, 'fuge');
     fs.mkdirSync(fuge);
@@ -452,7 +452,7 @@ module.exports = function(composeFile) {
     }, function() {
       generateServices({
         cwd: cwd,
-        transport: transport,
+        framework: framework,
         interactivity: interactivity
       }, cb);
     });
