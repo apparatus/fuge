@@ -87,12 +87,8 @@ module.exports = function(composeFile) {
     label = label || 'Web';
     opts = opts || {};
     var def = opts.def = opts.def || 'hapi';
-    var mixed = 'mixed' in opts ? opts.mixed : true;
 
     var frameworks = FRAMEWORKS.slice();
-    if (mixed) {
-      frameworks.push('mixed');
-    }
     var framework = prompt(inq(label + ' framework', framework, frameworks)) || def;
 
     if (frameworks.indexOf(framework) === -1) {
@@ -137,10 +133,8 @@ module.exports = function(composeFile) {
   var defineService = function(label, interactivity, srv) {
     return {
       name: (interactivity >= MEDIUM) && prompt(inq(label + ' name', srv.name)) || srv.name,
-      framework: (srv.framework === 'mixed' || interactivity >= HIGH) ?
-        frameworkSelection(srv.name, {
-          mixed: false
-        }) :
+      framework: (interactivity >= HIGH) ?
+        frameworkSelection(srv.name) :
         srv.framework,
       appendToCompose: (interactivity >= HIGH) ?
         ask(inq('append ' + srv.name + ' to compose-dev.yml?:', ['y', 'n'])) :
@@ -264,183 +258,12 @@ module.exports = function(composeFile) {
     }
   };
 
-  var addInfluxDbDefinition = function(compose) {
-    compose.influxdb = {
-      image: 'tutum/influxdb:0.9',
-      ports: [
-        '8086:8086',
-        '8083:8083'
-      ],
-      environment: {
-        PRE_CREATE_DB: 'seneca_msgstats',
-        ADMIN_USER: 'msgstats',
-        INFLUXDB_INIT_PWD: 'msgstats'
-      }
-    };
-    return compose;
-  };
-
-  var addDashboardDefinition = function(compose) {
-    compose.dashboard = {
-      build: '../dashboard',
-      container_name: 'dashboard'
-    };
-    return compose;
-  };
-
-  var addMetricsService = function(compose, cb) {
-    compose.metrics = {
-      build: '../fuge-metrics',
-      container_name: 'fuge-metrics'
-    };
-    var metrics = path.join(composeFile, '..', '..', 'fuge-metrics');
-    fs.mkdirSync(metrics);
-    runYo(createEnv({
-      cwd: metrics
-    }), 'seneca-metrics', {
-      name: 'fuge-metrics'
-    }, function(err) {
-      cb(err, compose);
-    });
-  };
-
-  var addMsgstats = function(compose) {
-    var services = Object.keys(compose)
-      .map(function(k) {
-        return compose[k];
-      })
-      .filter(function(srv) {
-        return srv.build;
-      });
-
-    var added = services
-      .map(function(srv) {
-        var srvPath = path.join(path.dirname(composeFile), srv.build);
-        if (!fs.existsSync(srvPath)) {
-          console.warn('Warning: ', srv.container_name, ' build folder does not exist!');
-          return;
-        }
-        if (!fs.existsSync(path.join(srvPath, 'package.json'))) {
-          return;
-        }
-        var pkg = JSON.parse(fs.readFileSync(path.join(srvPath, 'package.json')));
-        var deps = Object.keys(pkg.dependencies);
-        var spIx;
-        if (deps.indexOf('seneca') === -1) {
-          return;
-        }
-        if (deps.indexOf('seneca-env-plugins') === -1) {
-          console.warn('Warning: ', srv.container_name, ' service is not using seneca-env-plugins!');
-          return;
-        }
-        srv.environment = srv.environment || {};
-        if (Array.isArray(srv.environment)) {
-          srv.environment.some(function(env, i) {
-            var match = /SENECA_PLUGINS.+=/.test(env);
-            if (match) {
-              spIx = i;
-            }
-            return match;
-          });
-
-          if (typeof spIx === 'number') {
-            srv.environment[spIx] = srv.environment[spIx].split('=')[0].split(',')
-              .concat('msgstats')
-              .join(',');
-            return {
-              srv: srv,
-              pkg: pkg,
-              path: srvPath
-            };
-          }
-          srv.environment.push('SENECA_PLUGINS="msgstats"');
-          return {
-            srv: srv,
-            pkg: pkg,
-            path: srvPath
-          };
-        }
-        if ('SENECA_PLUGINS' in srv.environment) {
-          srv.environment.SENECA_PLUGINS = srv.environment.SENECA_PLUGINS
-            .split(',')
-            .concat('msgstats')
-            .join(',');
-          return {
-            srv: srv,
-            pkg: pkg,
-            path: srvPath
-          };
-        }
-        srv.environment.SENECA_PLUGINS = 'msgstats';
-        return {
-          srv: srv,
-          pkg: pkg,
-          path: srvPath
-        };
-      })
-      .filter(Boolean);
-
-
-    function installDeps(added) {
-      if (!added.length) {
-        return;
-      }
-      var cwd = added.shift().path;
-      spawn('npm', ['i', '--save', 'seneca-msgstats'], {
-        cwd: cwd,
-        stdio: 'inherit'
-      })
-        .on('close', function() {
-          installDeps(added);
-        });
-    }
-    installDeps(added);
-    return compose;
-  };
-
-  var enableDocker = function() {
-    var fugeConfig = path.resolve(composeFile, '..', 'fuge-config.js');
-    var cfg = require(fugeConfig);
-    cfg.runDocker = true;
-    fs.writeFileSync(fugeConfig, 'module.exports = ' + JSON.stringify(cfg, 0, 2));
-  };
-
-  var generateDashboard = function(cb) {
-
-    var compose = yaml.load(composeFile);
-    var dashboard = path.join(composeFile, '..', '..', 'dashboard');
-
-    compose = addMsgstats(compose);
-    compose = addInfluxDbDefinition(compose);
-
-    enableDocker();
-
-    addMetricsService(compose, function(err, compose) {
-      if (err) {
-        return cb(err);
-      }
-      fs.mkdirSync(dashboard);
-      runYo(createEnv({
-        cwd: dashboard
-      }), 'vidi-dashboard', {
-        name: 'dashboard'
-      }, function(err) {
-        if (err) {
-          return cb(err);
-        }
-        compose = addDashboardDefinition(compose);
-        compose = yaml.dump(compose);
-        fs.writeFile(composeFile, compose, cb);
-      });
-    });
-  };
-
   var generateSystem = function(args, cb) {
     var cwd = process.cwd();
     var interactivity = determineInteractivity(args.i);
 
     var framework = (interactivity && interactivity <= MEDIUM) ?
-      frameworkSelection('Web', { mixed: false }) :
+      frameworkSelection('Web') :
       'hapi';
 
     var fuge = path.join(cwd, 'fuge');
@@ -460,8 +283,7 @@ module.exports = function(composeFile) {
 
   return {
     generateSystem: generateSystem,
-    generateService: generateService,
-    generateDashboard: generateDashboard
+    generateService: generateService
   };
 };
 

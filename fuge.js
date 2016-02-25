@@ -52,17 +52,6 @@ var generateService = function(args) {
 };
 
 
-
-var generateDashboard = function(args) {
-  args = argify(args);
-  gen(args.c).generateDashboard(args, function(err) {
-    if (err) { return console.error(err); }
-    console.log('Dashboard generated');
-  });
-};
-
-
-
 var buildSystem = function(args) {
   console.log('building...');
   util.compile(args, function(err, system, config) {
@@ -130,7 +119,6 @@ var showHelp = function() {
 
 program.register('generate system', generateSystem);
 program.register('generate service', generateService);
-program.register('generate dashboard', generateDashboard);
 program.register('build', buildSystem);
 program.register('pull', pullSystem);
 program.register('run', runSystem);
