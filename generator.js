@@ -29,9 +29,7 @@ var generators = [
   'fuge:app',
   'fuge:rest',
   'fuge:static',
-  'fuge:service',
-  'seneca-metrics:app',
-  'vidi-dashboard:app'
+  'fuge:service'
 ];
 
 var NONE = 0;
