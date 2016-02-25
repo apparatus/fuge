@@ -22,8 +22,6 @@ var prompt = require('incite');
 var ask = require('positive');
 var ord = require('ordinal').english;
 var util = require('./util')();
-var yaml = require('yamljs');
-var spawn = require('child_process').spawn;
 
 process.env.PATH = path.join(__dirname, 'node_modules', '.bin') + ':' + process.env.PATH;
 
