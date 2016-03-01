@@ -5,7 +5,7 @@
 
 Fuge provides a generation and execution environment for microservice development on node.js.
 
-Full documentation is [available here](./doc/doc.md).
+Full documentation is [available here](http://fuge.io/).
 
 ![demo](./assets/demo.gif)
 
