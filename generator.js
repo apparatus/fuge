@@ -107,23 +107,21 @@ module.exports = function(composeFile) {
     runYo(env, 'fuge:service', {
       name: srv.name,
       framework: framework
-    }, function() {
-
+    }, function(err) {
+      if (err) { return cb(err); }
       var definition = createServiceDefinition(name);
-
+      
       if (appendToCompose && fs.existsSync(composeFile)) {
         fs.appendFileSync(composeFile, definition);
-        return cb && cb();
+        return cb();
       } else {
         console.log('add the following to compose-dev.yml to enable this service: ');
         console.log();
         console.log(definition);
         console.log();
-        if (cb) { cb(); }
+        return cb();
       }
-      return framework;
     });
-
   };
 
   var defineService = function(label, interactivity, srv) {
@@ -224,7 +222,8 @@ module.exports = function(composeFile) {
       runYo(hapiEnv, 'fuge:rest', {
         name: 'api',
         framework: framework
-      }, function() {
+      }, function(err) {
+        if (err) { return cb(err); }
         console.log('');
         console.log('system generated !!');
         console.log('spin it up with : fuge run ./fuge/compose-dev.yml');
@@ -243,7 +242,8 @@ module.exports = function(composeFile) {
       runYo(hapiEnv, 'fuge:static', {
         name: 'site',
         framework: framework
-      }, function() {
+      }, function(err) {
+        if (err) { return cb(err); }
         console.log('');
         console.log('system generated !!');
         console.log('spin it up with : fuge run ./fuge/compose-dev.yml');
@@ -268,7 +268,8 @@ module.exports = function(composeFile) {
       cwd: fuge
     }), 'fuge', {
       name: 'fuge'
-    }, function() {
+    }, function(err) {
+      if (err) { return cb(err); }
       generateServices({
         cwd: cwd,
         framework: framework,
