@@ -89,9 +89,7 @@ module.exports = function() {
 
 
   var proxy = function(args, system, cb) {
-    _proxy.previewAll(system, function(err) {
-      cb(err);
-    });
+    _proxy.previewAll(system, cb);
   };
 
 
@@ -123,14 +121,10 @@ module.exports = function() {
 
   var stopProcess = function(args, system, cb) { 
     if (args.length === 1 || args[1] === 'all') {
-      _runner.stopAll(system, function(err) {
-        cb(err);
-      });
+      _runner.stopAll(system, cb);
     }
     else {
-      _runner.stop(system, args[1], args[2] || 1, function(err) {
-        cb(err);
-      });
+      _runner.stop(system, args[1], args[2] || 1, cb);
     }
   };
 
@@ -138,14 +132,10 @@ module.exports = function() {
 
   var startProcess = function(args, system, cb) { 
     if (args.length === 1 || args[1] === 'all') {
-      _runner.startAll(system, args[2] || 1, function(err) {
-        cb(err);
-      });
+      _runner.startAll(system, args[2] || 1, cb);
     }
     else {
-      _runner.start(system, args[1], args[2] || 1, function(err) {
-        cb(err);
-      });
+      _runner.start(system, args[1], args[2] || 1, cb);
     }
   };
 
@@ -154,9 +144,7 @@ module.exports = function() {
   var debugProcess = function(args, system, cb) { 
     if (args.length === 2) {
       if (!_runner.isProcessRunning(args[1])) {
-        _runner.debug(system, args[1], function(err) {
-          cb(err);
-        });
+        _runner.debug(system, args[1], cb);
       }
       else {
         console.log('process already running - terminate to debug');
@@ -234,7 +222,7 @@ module.exports = function() {
     
 
   var sendMessage = function(args, system, cb) {
-    console.log('not implemented');
+    console.error('not implemented');
     cb();
   };
 
@@ -400,11 +388,13 @@ module.exports = function() {
 
     console.log('starting proxy...');
     _proxy.startAll(system, function(err) {
-      if (err) { console.log(err); process.exit(0); }
+      if (err) { console.error(err); process.exit(0); }
 
       var s = command.split(' ');
-      commands[s[0]](s, system, function(err){
-        if (err) { console.log(err); }
+      var cmd = _.find(commands, { command: s[0] });
+      if (!cmd) { console.error('Unknown command:', cmd); process.exit(0); }
+      cmd.action(s, system, function(err){
+        if (err) { console.error(err); }
       });
     });
   };

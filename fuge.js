@@ -56,7 +56,7 @@ var buildSystem = function(args) {
   console.log('building...');
   util.compile(args, function(err, system, config) {
     runner.buildSystem(system, config, function(err) {
-      if (err) { return console.log(err); }
+      if (err) { return console.error(err); }
     });
   });
 };
@@ -65,7 +65,7 @@ var pullSystem = function(args) {
   console.log('pulling...');
   util.compile(args, function(err, system, config) {
     runner.pullSystem(system, config, function(err) {
-      if (err) { return console.log(err); }
+      if (err) { return console.error(err); }
     });
   });
 };
@@ -75,7 +75,7 @@ var pullSystem = function(args) {
 var runSystem = function(args) {
   console.log('compiling...');
   util.compile(args, function(err, system, config) {
-    if (err) { return console.log(err); }
+    if (err) { return console.error(err); }
     shell.runSingleCommand(system, config, 'start all');
   });
 };
@@ -85,7 +85,7 @@ var runSystem = function(args) {
 var runShell = function(args) {
   console.log('compiling...');
   util.compile(args, function(err, system, config) {
-    if (err) { return console.log(err); }
+    if (err) { return console.error(err); }
     shell.run(system, config);
   });
 };
@@ -95,7 +95,7 @@ var runShell = function(args) {
 var previewSystem = function(args) {
   console.log('compiling...');
   util.compile(args, function(err, system, config) {
-    if (err) { return console.log(err); }
+    if (err) { return console.error(err); }
     runner.previewSystem(system, config);
   });
 };
@@ -131,7 +131,7 @@ program.register('--help', showHelp);
 
 function start(argv) {
   var remaining = program.parse(argv);
-  if (remaining) { console.log('No matching command.'); }
+  if (remaining) { console.error('No matching command.'); }
 }
 
 
