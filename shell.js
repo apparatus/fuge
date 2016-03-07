@@ -59,7 +59,6 @@ module.exports = function() {
     var table = new CliTable({chars: tableChars, style: tableStyle,
                               head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white, 'count'.white], colWidths: [30, 15, 15, 15, 15, 5]});
     var procs = _runner.processes();
-  
     var counts = _.countBy(_.keys(procs), function(key) { return procs[key].identifier; });
 
     _.each(system.topology.containers, function(container) {
