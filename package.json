@@ -35,7 +35,7 @@
     "minimist": "^1.2.0",
     "ordinal": "^1.0.0",
     "positive": "^1.0.9",
-    "vorpal": "^1.5.5",
+    "vorpal": "^1.10.8",
     "xenotype": "^0.4.0",
     "yamljs": "^0.2.5",
     "yeoman-assert": "^2.1.1",
