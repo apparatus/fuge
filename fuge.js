@@ -23,7 +23,6 @@ var util = require('./util')();
 var minimist = require('minimist');
 
 
-
 function argify(args) {
   return minimist(args, {
     alias: {
@@ -37,12 +36,10 @@ function argify(args) {
 }
 
 
-
 var generateSystem = function(args) {
   args = argify(args);
   gen(args.c).generateSystem(args, function() {});
 };
-
 
 
 var generateService = function(args) {
@@ -61,6 +58,7 @@ var buildSystem = function(args) {
   });
 };
 
+
 var pullSystem = function(args) {
   console.log('pulling...');
   util.compile(args, function(err, system, config) {
@@ -69,7 +67,6 @@ var pullSystem = function(args) {
     });
   });
 };
-
 
 
 var runSystem = function(args) {
@@ -81,7 +78,6 @@ var runSystem = function(args) {
 };
 
 
-
 var runShell = function(args) {
   console.log('compiling...');
   util.compile(args, function(err, system, config) {
@@ -89,7 +85,6 @@ var runShell = function(args) {
     shell.run(system, config);
   });
 };
-
 
 
 var previewSystem = function(args) {
@@ -101,20 +96,17 @@ var previewSystem = function(args) {
 };
 
 
-
 var showHelp = function() {
+  console.log('Usage: fuge <command> <options>');
   console.log('');
-  console.log('usage: fuge <command> <options>');
-  console.log('available commands');
-  console.log('generate [system | service] - generate a system or an additional system service');
-  console.log('build - build a system by executing the RUN commands in each services Dockerfile');
-  console.log('pull - update a system by attempting a git pull against each service');
-  console.log('run <compose file> - run a system');
-  console.log('preview <compose file> - preview a run command for a system');
-  console.log('shell <compose file> - start an interactive shell for a system');
-  console.log('help - show this help');
+  console.log('fuge generate <system|service> generate a system or an additional system service');
+  console.log('fuge build                     build a system by executing the RUN commands in each services Dockerfile');
+  console.log('fuge pull                      update a system by attempting a git pull against each service');
+  console.log('fuge run <compose-file>        run a system');
+  console.log('fuge preview <compose-file>    preview a run command for a system');
+  console.log('fuge shell <compose-file>      start an interactive shell for a system');
+  console.log('fuge help                      show this help');
 };
-
 
 
 program.register('generate system', generateSystem);
@@ -128,17 +120,13 @@ program.register('help', showHelp);
 program.register('--help', showHelp);
 
 
-
 function start(argv) {
   var remaining = program.parse(argv);
   if (remaining) { console.error('No matching command.'); }
 }
 
 
-
 module.exports = start;
 if (require.main === module) {
   start(process.argv.slice(2));
 }
-
-
