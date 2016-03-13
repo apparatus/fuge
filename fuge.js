@@ -21,6 +21,7 @@ var gen = require('./generator');
 var shell = require('./shell')();
 var util = require('./util')();
 var minimist = require('minimist');
+var pkg = require('./package.json');
 
 
 
@@ -38,6 +39,12 @@ function argify(args) {
 
 
 
+var showVersion = function() {
+  console.log('v' + pkg.version);
+};
+
+
+
 var generateSystem = function(args) {
   args = argify(args);
   gen(args.c).generateSystem(args, function() {});
@@ -52,6 +59,7 @@ var generateService = function(args) {
 };
 
 
+
 var buildSystem = function(args) {
   console.log('building...');
   util.compile(args, function(err, system, config) {
@@ -60,6 +68,8 @@ var buildSystem = function(args) {
     });
   });
 };
+
+
 
 var pullSystem = function(args) {
   console.log('pulling...');
@@ -112,6 +122,7 @@ var showHelp = function() {
   console.log('run <compose file> - run a system');
   console.log('preview <compose file> - preview a run command for a system');
   console.log('shell <compose file> - start an interactive shell for a system');
+  console.log('version - version of fuge');
   console.log('help - show this help');
 };
 
@@ -124,6 +135,8 @@ program.register('pull', pullSystem);
 program.register('run', runSystem);
 program.register('preview', previewSystem);
 program.register('shell', runShell);
+program.register('version', showVersion);
+program.register('--version', showVersion);
 program.register('help', showHelp);
 program.register('--help', showHelp);
 
@@ -140,5 +153,6 @@ module.exports = start;
 if (require.main === module) {
   start(process.argv.slice(2));
 }
+
 
 
