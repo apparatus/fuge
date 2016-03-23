@@ -106,6 +106,7 @@ The fuge shell supports the following commands:
 * **start [process]** - start a process
 * **start all** - start all stopped processes
 * **debug [process]** - start a process in debug mode and launch node-debug (experimental)
+* **profile [process]** - start a process with [0x](http://npm.im/0x), when the process is stopped a flamegraph will be generated in the services folder. 
 * **watch [process] | all** - turn on watching for a process or for all processes
 * **unwatch [process] | all** - turn off watching for a process or for all processes
 * **tail [process] | all** - tail output for a process or for all processes
