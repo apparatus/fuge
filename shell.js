@@ -390,15 +390,15 @@ module.exports = function() {
         inputStructure(com.command,'[process]',
           com.description, com.action, system);
       }
-      else if (com.command === 'debug') {
+      else if (com.command === 'debug'){
         inputStructure(com.command,'<process>',
           com.description, com.action, system);
       }
-      else if (com.command === 'profile') {
+      else if (com.command === 'profile'){
         inputStructure(com.command,'<process>',
           com.description, com.action, system);
       }
-      else if (com.command === 'send') {
+      else if (com.command === 'send'){
         inputStructure(com.command,'<process> <message>',
           com.description, com.action, system);
       }
