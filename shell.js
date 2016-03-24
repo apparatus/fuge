@@ -346,8 +346,8 @@ module.exports = function() {
           var arr = [command];
             if (command === 'send'){
               if (opt !== undefined){
-                for (var i=0; i<opt.length; i++){
-                arr.push(opt[i]);
+                for (var i = 0; i < opt.length; i++) {
+                  arr.push(opt[i]);
                 }
               }
               action(arr, system, cb);
