@@ -113,17 +113,16 @@ var previewSystem = function(args) {
 
 
 var showHelp = function() {
-  console.log('');
   console.log('usage: fuge <command> <options>');
-  console.log('available commands');
-  console.log('generate [system | service] - generate a system or an additional system service');
-  console.log('build - build a system by executing the RUN commands in each services Dockerfile');
-  console.log('pull - update a system by attempting a git pull against each service');
-  console.log('run <compose file> - run a system');
-  console.log('preview <compose file> - preview a run command for a system');
-  console.log('shell <compose file> - start an interactive shell for a system');
-  console.log('version - version of fuge');
-  console.log('help - show this help');
+  console.log('');
+  console.log('fuge generate <system|service>  generate a system or an additional system service');
+  console.log('fuge build                      build a system by executing the RUN commands in each services Dockerfile');
+  console.log('fuge pull                       update a system by attempting a git pull against each service');
+  console.log('fuge run <compose-file>         run a system');
+  console.log('fuge preview <compose-file>     preview a run command for a system');
+  console.log('fuge shell <compose-file>       start an interactive shell for a system');
+  console.log('fuge version                    version of fuge');
+  console.log('fuge help                       show this help');
 };
 
 
@@ -148,11 +147,7 @@ function start(argv) {
 }
 
 
-
 module.exports = start;
 if (require.main === module) {
   start(process.argv.slice(2));
 }
-
-
-
