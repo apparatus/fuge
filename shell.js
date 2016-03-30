@@ -72,7 +72,7 @@ module.exports = function() {
             var proc = procs[procKey];
             table.push([container.name.green, 
                         container.type.green, 
-                        'running'.green, 
+                        container.profiling ? 'profiling'.green : 'running'.green, 
                         proc.monitor ? 'yes'.green : 'no'.red,
                         proc.tail ? 'yes'.green : 'no'.red,
                         counts[container.name] ? ('' + counts[container.name]).green : '0'.red]);
@@ -162,6 +162,35 @@ module.exports = function() {
     }
   };
 
+  var profileProcess = function(args, system, cb) {
+    if (!_runner.isProcessRunning(args.process)) {
+      _runner.profile(system, args, cb);
+    }
+    else {
+      console.log('process already running - terminate to profile');
+      cb();
+    }
+  };
+
+  var profileOptions = function(cmd) {
+    cmd
+      .option('--preview', 'Generates an SVG file, prerenders SVG inside HTML and outputs a PNG to the terminal (if possible) Depends on imagemagick (brew install imagemagick) If using iTerm 2.9+ image will be output to terminal Warning - depending on the amount of stacks this option can take tens of seconds')
+      .option('--delay, -d <delay>', 'Milliseconds. Delay before tracing begins (or before stacks are processed in the Linux case), allows us to ignore initialisation stacks (e.g. module loading).')
+      .option('--langs, -l', 'Color code the stacks by JS and C.')
+      .option('--tiers, -t', 'Overrides langs, Color code frames by type')
+      .option('--exclude, -x <list>', 'Exclude tiers or langs, comma seperated list',
+        ['v8', 'regexp', 'nativeC', 'nativeJS', 'core', 'deps', 'app', 'js', 'c'])
+      .option('--include <list>', 'Include tiers, Overwrites exclude. Really only useful for including the v8 tier (which is excluded by default).',
+        ['v8', 'regexp', 'nativeC', 'nativeJS', 'core', 'deps', 'app', 'js', 'c'])
+      .option('--theme <type>', 'Dark or Light theme, default: dark', ['dark', 'light'])
+      .option('--stacks-only', 'Don\'t generate the flamegraph, only create the stacks output. If assigned to '-' stacks output will come through stdout. Use this in combination with the -c gen argument to generate the flamegraph from raw stacks.',
+        ['false', 'true', '-'])
+      .option('--trace-info', 'Show output from dtrace or perf tools')
+      .option('--cmd, -c', 'Run a "0x command", possible commands are help and gen.', 
+        ['help', 'gen'])
+      .option('--timestamp-profiles', 'Adds the current timestamp to the Profile Folder\'s name minimizing collisions for in containerized environments');
+
+  };
 
 
   var watchProcess = function(args, system, cb) { 
@@ -264,6 +293,11 @@ module.exports = function() {
     description: 'start a process in debug mode'
   },
   {
+    command: 'profile',
+    action: profileProcess,
+    description: 'start a process with the profiler (0x)'
+  },
+  {
     command: 'watch',
     action: watchProcess,
     description: 'turn on watching for a process'
@@ -298,39 +332,47 @@ module.exports = function() {
 
   var inputStructure = function(command, type, description, action, system){
     // structures the commands and creates the vorpal instances
+    var cmd;
     if (type !== null){
-      vorpal
-      .command(command + type)
-      .autocomplete(procList)
-      .description(description)
-      .action(function (args, cb) {
-        var opt = args.process; // optional argument
-        var arr = [command];
-          if (command === 'send'){
-            if (opt !== undefined){
-              for (var i=0; i<opt.length; i++){
-              arr.push(opt[i]);
+      cmd = vorpal
+        .command(command + type)
+        .autocomplete(procList)
+        .description(description)
+        .action(function (args, cb) {
+          if (command === 'profile') {
+            return action(args, system, cb);
+          }
+          var opt = args.process; // optional argument
+          var arr = [command];
+            if (command === 'send'){
+              if (opt !== undefined){
+                for (var i = 0; i < opt.length; i++) {
+                  arr.push(opt[i]);
+                }
               }
+              action(arr, system, cb);
+            }
+            else {
+              if (opt !== undefined){
+              arr.push(opt);
             }
             action(arr, system, cb);
-          }
-          else {
-            if (opt !== undefined){
-            arr.push(opt);
-          }
-          action(arr, system, cb);
-          }
-        });
+            }
+          });
+
+      if (command === 'profile') {
+        profileOptions(cmd);
       }
+    }
       // if no additional arguments are available
     else {
-      vorpal
-      .command(command)
-      .description(description)
-      .action(function (args, cb) {
-        var arr = [command];
-        action(arr, system, cb);
-      });
+      cmd = vorpal
+        .command(command)
+        .description(description)
+        .action(function (args, cb) {
+          var arr = [command];
+          action(arr, system, cb);
+        });
     }
   };
 
@@ -348,11 +390,15 @@ module.exports = function() {
         inputStructure(com.command,'[process]',
           com.description, com.action, system);
       }
-      else if (com.command === 'debug') {
+      else if (com.command === 'debug'){
         inputStructure(com.command,'<process>',
           com.description, com.action, system);
       }
-      else if (com.command === 'send') {
+      else if (com.command === 'profile'){
+        inputStructure(com.command,'<process>',
+          com.description, com.action, system);
+      }
+      else if (com.command === 'send'){
         inputStructure(com.command,'<process> <message>',
           com.description, com.action, system);
       }
