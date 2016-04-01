@@ -54,10 +54,10 @@ Fuge will ask you for some simple questions and then generate a system for you. 
 │	└── Dockerfile
 ├── service2
 │	└── Dockerfile
-└── site
-	├── Dockerfile
-    ├── api
-    └── public
+└── api
+│	└── Dockerfile
+├── static
+└	└── Dockerfile
 ```
 
 The structure has the following key files:
@@ -66,9 +66,10 @@ The structure has the following key files:
   * compose-dev.yml - a docker-compose yaml file that serves as the main configuration reference for the system
   * docker-compose.yml - a docker-compose yaml file that has a pre-configured fuge environment
   * fuge-config.json - contains fuge specific settings and overrides not supported by docker-compose
-* service1 - contains a basic http point to point microservice using the Seneca framework
-* service2 - contains a basic http point to point microservice using the Seneca framework
-* site - contains a frontend site for the system. This is comprised of an api and a public site using the hapi framework
+* service1 - contains a microservice using the Seneca framework
+* service2 - contains a microservice using the Seneca framework
+* api - contains a hapi or express REST api (based on your during initalization)
+* static - contains a static file server for your front-end code. maps the api service to /api.
 
 To start the generated system execute:
 
@@ -161,7 +162,7 @@ The [apparatus team][] encourage open participation. If you feel you can help in
 documentation, examples, extra testing, or new features please get in touch.
 
 ## License
-Copyright the apparatus team 2015, Licensed under [MIT][].
+Copyright the apparatus team 2016, Licensed under [MIT][].
 
 [apparatus team]: https://github.com/apparatus
 [travis-badge]: https://travis-ci.org/apparatus/fuge-runner.svg
