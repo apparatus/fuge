@@ -1,3 +1,7 @@
+3 April 2016 - 0.6.1
+---
+* Fix upstream dependency on simple-grep breaking (thanks marco)
+
 1 April 2016 - 0.6.0
 ---
 * New versions of all custom dependencies.
