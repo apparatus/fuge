@@ -68,7 +68,7 @@ The structure has the following key files:
   * fuge-config.json - contains fuge specific settings and overrides not supported by docker-compose
 * service1 - contains a microservice using the Seneca framework
 * service2 - contains a microservice using the Seneca framework
-* api - contains a hapi or express REST api (based on your during initalization)
+* api - contains a hapi or express REST api (based on your selection during initalization)
 * static - contains a static file server for your front-end code. maps the api service to /api.
 
 To start the generated system execute:
