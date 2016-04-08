@@ -28,7 +28,7 @@
     "death": "^1.0.0",
     "fastseries": "^1.7.0",
     "fuge-proxy": "^0.4.0",
-    "fuge-runner": "^0.7.3",
+    "fuge-runner": "^0.7.4",
     "generator-fuge": "^0.5.2",
     "incite": "^2.0.0",
     "lodash": "^4.5.0",

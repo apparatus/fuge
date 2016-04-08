@@ -1,3 +1,7 @@
+8 April 2016 - 0.6.3
+---
+* Fix for bug that stops node processes from being started again (thanks Wyatt)
+
 5 April 2016 - 0.6.2
 ---
 * Fix for fuge lib required in services (thanks Wyatt)
