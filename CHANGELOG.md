@@ -1,3 +1,7 @@
+27 April 2016 - 0.6.3
+---
+* Changed Exit and quit commands so they can exit the whole system or just stop one process
+
 8 April 2016 - 0.6.3
 ---
 * Fix for bug that stops node processes from being started again (thanks Wyatt)
