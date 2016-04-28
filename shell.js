@@ -129,22 +129,26 @@ module.exports = function() {
     if (args.length === 1 && args[0] === 'exit') {
       stopSystem(system);
     } 
-    else if (args.length === 1 || args[1] === 'all') {
+    else if (args.length === 1 || args[1][0] === 'all') {
       _runner.stopAll(system, cb);
     }
     else {
-      _runner.stop(system, args[1], args[2] || 1, cb);
+      for (var i=0; i<args[1].length; i++){
+      _runner.stop(system, args[1][i], 1, cb);
+      }
     }
   };
 
 
 
-  var startProcess = function(args, system, cb) { 
-    if (args.length === 1 || args[1] === 'all') {
+  var startProcess = function(args, system, cb) {
+    if (args.length === 1 || args[1][0] === 'all') {
       _runner.startAll(system, args[2] || 1, cb);
     }
     else {
-      _runner.start(system, args[1], args[2] || 1, cb);
+      for (var i=0; i<args[1].length; i++){
+      _runner.start(system, args[1][i], 1, cb);
+      }
     }
   };
 
@@ -414,16 +418,19 @@ module.exports = function() {
     
     commands.forEach(function (com) {
       //creates a vorpal instance for each object in commands
-      if (com.command === 'start' || com.command === 'watch'||
-      com.command === 'unwatch' || com.command === 'grep'||
-      com.command === 'stop'  || com.command === 'info' || 
-      com.command === 'tail' || com.command === 'untail' || 
-      com.command === 'exit'){
+      if (com.command === 'watch'|| com.command === 'unwatch' || 
+      com.command === 'grep'|| com.command === 'info' || 
+      com.command === 'tail' || com.command === 'untail'){
         inputStructure(com.command,'[process]',
           com.description, com.action, system);
       }
       else if (com.command === 'debug'){
         inputStructure(com.command,'<process>',
+          com.description, com.action, system);
+      }
+      else if (com.command === 'start' || com.command === 'stop' ||
+       com.command === 'exit'){
+        inputStructure(com.command,'[process...]',
           com.description, com.action, system);
       }
       else if (com.command === 'profile'){
