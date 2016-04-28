@@ -134,7 +134,9 @@ module.exports = function() {
     }
     else {
       for (var i=0; i<args[1].length; i++){
-      _runner.stop(system, args[1][i], 1, cb);
+        if (_.includes(procList,args[1][i])){
+         _runner.stop(system, args[1][i], 1, cb);
+        }
       }
     }
   };

@@ -1,6 +1,7 @@
-27 April 2016 - 0.6.3
+27 April 2016 - x.x.x
 ---
 * Changed Exit and quit commands so they can exit the whole system or just stop one process
+* Start and stop commands changed to accept multiple processes at once
 
 8 April 2016 - 0.6.3
 ---
