@@ -1,7 +1,8 @@
-27 April 2016 - x.x.x
+3 May 2016 - 0.6.4
 ---
 * Changed Exit and quit commands so they can exit the whole system or just stop one process
 * Start and stop commands changed to accept multiple processes at once
+* Update generators to fix bugs in tests and use seneca 2.x
 
 8 April 2016 - 0.6.3
 ---
