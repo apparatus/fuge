@@ -125,23 +125,32 @@ module.exports = function() {
 
 
 
-  var stopProcess = function(args, system, cb) { 
-    if (args.length === 1 || args[1] === 'all') {
+  var stopProcess = function(args, system, cb) {
+    if (args.length === 1 && args[0] === 'exit') {
+      stopSystem(system);
+    } 
+    else if (args.length === 1 || args[1][0] === 'all') {
       _runner.stopAll(system, cb);
     }
     else {
-      _runner.stop(system, args[1], args[2] || 1, cb);
+      for (var i=0; i<args[1].length; i++){
+        if (_.includes(procList,args[1][i])){
+         _runner.stop(system, args[1][i], 1, cb);
+        }
+      }
     }
   };
 
 
 
-  var startProcess = function(args, system, cb) { 
-    if (args.length === 1 || args[1] === 'all') {
+  var startProcess = function(args, system, cb) {
+    if (args.length === 1 || args[1][0] === 'all') {
       _runner.startAll(system, args[2] || 1, cb);
     }
     else {
-      _runner.start(system, args[1], args[2] || 1, cb);
+      for (var i=0; i<args[1].length; i++){
+      _runner.start(system, args[1][i], 1, cb);
+      }
     }
   };
 
@@ -327,13 +336,18 @@ module.exports = function() {
     action: sendMessage,
     description: 'sends a message to a specific process'
   },
+  {
+    command: 'exit',
+    action: stopProcess,
+    description: 'exit system or a single process'
+  },
 ];
 
 
   var inputStructure = function(command, type, description, action, system){
     // structures the commands and creates the vorpal instances
     var cmd;
-    if (type !== null){
+    if (type !== null && command !== 'exit'){
       cmd = vorpal
         .command(command + type)
         .autocomplete(procList)
@@ -364,6 +378,22 @@ module.exports = function() {
         profileOptions(cmd);
       }
     }
+    // special case for exit
+    else if (command === 'exit'){
+      vorpal
+        .command(command + type)
+        .alias('quit')
+        .autocomplete(procList)
+        .description(description)
+        .action(function (args, cb) {
+          var opt = args.process; // optional argument
+          var arr = [command];
+              if (opt !== undefined){
+              arr.push(opt);
+            }
+            action(arr, system, cb);
+          });
+      }
       // if no additional arguments are available
     else {
       cmd = vorpal
@@ -380,18 +410,29 @@ module.exports = function() {
 
   var repl = function(system) {
     vorpal.delimiter('?'.green +' fuge>'.bold).show();
+    
+    var exit = vorpal.find('exit'); // override built in exit command
+    if (exit) { 
+    exit.remove();
+    }
+    
     autoComp(system); // add all process to autocomplete
+    
     commands.forEach(function (com) {
       //creates a vorpal instance for each object in commands
-      if (com.command === 'start' || com.command === 'watch'||
-      com.command === 'unwatch' || com.command === 'grep'||
-      com.command === 'stop'  || com.command === 'info' || 
+      if (com.command === 'watch'|| com.command === 'unwatch' || 
+      com.command === 'grep'|| com.command === 'info' || 
       com.command === 'tail' || com.command === 'untail'){
         inputStructure(com.command,'[process]',
           com.description, com.action, system);
       }
       else if (com.command === 'debug'){
         inputStructure(com.command,'<process>',
+          com.description, com.action, system);
+      }
+      else if (com.command === 'start' || com.command === 'stop' ||
+       com.command === 'exit'){
+        inputStructure(com.command,'[process...]',
           com.description, com.action, system);
       }
       else if (com.command === 'profile'){
