@@ -62,7 +62,7 @@ Fuge will ask you for some simple questions and then generate a system for you. 
 
 The structure has the following key files:
 
-* fuge - This directory contains two files
+* fuge - contains configuration files
   * compose-dev.yml - a docker-compose yaml file that serves as the main configuration reference for the system
   * docker-compose.yml - a docker-compose yaml file that has a pre-configured fuge environment
   * fuge-config.json - contains fuge specific settings and overrides not supported by docker-compose
@@ -71,7 +71,7 @@ The structure has the following key files:
 * api - contains a hapi or express REST api (based on your selection during initalization)
 * static - contains a static file server for your front-end code. maps the api service to /api.
 
-To start the generated system execute:
+To start the generated system, execute:
 
 ```
 fuge run ./fuge/compose-dev.yml

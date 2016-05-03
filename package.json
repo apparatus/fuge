@@ -49,8 +49,8 @@
     "fuge": "./fuge.js"
   },
   "scripts": {
-    "lint": "jshint *.js && jshint **/*.js",
-    "test": "jshint *.js && jshint **/*.js && node test",
+    "lint": "jshint --exclude ./node_modules .",
+    "test": "npm run lint && node test",
     "coverage": "istanbul cover test/*Test.js && open ./coverage/lcov-report/index.html",
     "coverage-check": "istanbul cover test/*Test.js && istanbul check-coverage",
     "commit-check": "npm run lint"
