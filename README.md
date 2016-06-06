@@ -74,7 +74,12 @@ The structure has the following key files:
 To start the generated system, execute:
 
 ```
-fuge run ./fuge/compose-dev.yml
+fuge shell ./fuge/compose-dev.yml
+```
+
+You can then start services with `start`:
+```
+fuge> start
 ```
 
 This will spin up the site and the two related microservices. Point your browser to http://localhost:10000/ to open the front end and exercise the microservices.
