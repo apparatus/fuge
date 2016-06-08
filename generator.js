@@ -15,7 +15,7 @@
 
 'use strict';
 
-var fs = require('fs');
+var fs = require('fs-extra');
 var path = require('path');
 var yeoman = require('yeoman-environment');
 var prompt = require('incite');
@@ -110,7 +110,7 @@ module.exports = function(composeFile) {
     }, function(err) {
       if (err) { return cb(err); }
       var definition = createServiceDefinition(name);
-      
+
       if (appendToCompose && fs.existsSync(composeFile)) {
         fs.appendFileSync(composeFile, definition);
         return cb();
@@ -256,6 +256,29 @@ module.exports = function(composeFile) {
 
   var generateSystem = function(args, cb) {
     var cwd = process.cwd();
+
+    if (args._.length) {
+      var systemName = args._[0];
+      var systemPath = path.join(cwd, systemName);
+
+      try {
+        fs.statSync(systemPath).isDirectory();
+        if(ask(inq('There is already a folder named ' + systemName + '. Do you want to override it?', ['y', 'n']))) {
+          fs.removeSync(systemPath);
+        } else {
+          systemName = prompt('New system folder name?(remember it\'s relative to the current path!)');
+          systemPath = path.join(cwd, systemName);
+        }
+      } catch (err) {
+        if(err.code !== 'ENOENT') {
+          return cb(err);
+        }
+      }
+
+      fs.mkdirsSync(systemPath);
+      cwd = systemPath;
+    }
+
     var interactivity = determineInteractivity(args.i);
 
     var framework = (interactivity && interactivity <= MEDIUM) ?
@@ -263,7 +286,7 @@ module.exports = function(composeFile) {
       'hapi';
 
     var fuge = path.join(cwd, 'fuge');
-    fs.mkdirSync(fuge);
+    fs.mkdirsSync(fuge);
     runYo(createEnv({
       cwd: fuge
     }), 'fuge', {
@@ -283,4 +306,3 @@ module.exports = function(composeFile) {
     generateService: generateService
   };
 };
-
