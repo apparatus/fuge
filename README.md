@@ -1,13 +1,13 @@
-![fuge-logo](./assets/fuge-logo.png)
+![fuge-logo](https://github.com/apparatus/fuge.io/blob/master/assets/files/fuge-logo.png)
 
 # fuge - 'rails for microservices'
 [![Gitter][gitter-badge]][gitter-url]
 
 Fuge provides a generation and execution environment for microservice development on node.js.
 
-Full documentation is [available here](http://fuge.io/).
+Full documentation is [available here][http://fuge.io/].
 
-![demo](./assets/demo.gif)
+![demo](https://github.com/apparatus/fuge.io/blob/master/assets/files/demo.gif)
 
 If you're using this module, and need help, you can:
 
@@ -112,7 +112,7 @@ The fuge shell supports the following commands:
 * **start [process]** - start a process
 * **start all** - start all stopped processes
 * **debug [process]** - start a process in debug mode and launch node-debug (experimental)
-* **profile [process]** - start a process with [0x](http://npm.im/0x), when the process is stopped a flamegraph will be generated in the services folder. 
+* **profile [process]** - start a process with [0x](http://npm.im/0x), when the process is stopped a flamegraph will be generated in the services folder.
 * **watch [process] | all** - turn on watching for a process or for all processes
 * **unwatch [process] | all** - turn off watching for a process or for all processes
 * **tail [process] | all** - tail output for a process or for all processes
