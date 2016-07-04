@@ -1,27 +1,20 @@
 ![fuge-logo](https://github.com/apparatus/fuge.io/blob/master/assets/files/fuge-logo.png)
 
-# fuge - 'rails for microservices'
+# fuge
 [![Gitter][gitter-badge]][gitter-url]
 
-Fuge provides a generation and execution environment for microservice development on node.js.
+Fuge provides a generation and execution environment for microservice development on node.js. It aims to help developers working on microservice systems in several ways,
 
-Full documentation is [available here][http://fuge.io/].
+- By providing a microservice scaffold generator
+- By providing a service execution environment
+- By reducing the friction between processes and containers during development
 
-![demo](https://github.com/apparatus/fuge.io/blob/master/assets/files/demo.gif)
+Full documentation is available at [fuge.io](http://fuge.io/).
 
 If you're using this module, and need help, you can:
 
 - Post a [github issue][],
 - Ask on the [Gitter][gitter-url].
-
-## Overview
-Fuge aims to help developers working on microservice systems in several ways:
-
-- By providing a microservice scaffold generator
-
-- By providing a service execution environment
-
-- By reducing the friction between processes and containers during development
 
 ## Install
 To install, use npm to install globally.
@@ -29,6 +22,9 @@ To install, use npm to install globally.
 ```
 npm install -g fuge
 ```
+
+## Demo
+![demo](https://github.com/apparatus/fuge.io/blob/master/assets/files/demo.gif)
 
 ## Scaffold Generator
 The scaffold generator creates a fully functional microservice system that is ready to run. Once generated you can add additional services manually or by using the service generator.
