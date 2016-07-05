@@ -1,6 +1,9 @@
 ![fuge-logo](https://github.com/apparatus/fuge.io/blob/master/assets/files/fuge-logo.png)
 
 # fuge
+[![npm version][npm-badge]][npm-url]
+[![npm downloads][npm-downloads-badge]][npm-url]
+[![Build Status][travis-badge]][travis-url]
 [![Gitter][gitter-badge]][gitter-url]
 
 Fuge provides a generation and execution environment for microservice development on node.js. It aims to help developers working on microservice systems in several ways,
@@ -165,11 +168,15 @@ documentation, examples, extra testing, or new features please get in touch.
 ## License
 Copyright the apparatus team 2016, Licensed under [MIT][].
 
-[apparatus team]: https://github.com/apparatus
-[travis-badge]: https://travis-ci.org/apparatus/fuge-runner.svg
-[travis-url]: https://travis-ci.org/apparatus/fuge-runner
+
+[npm-badge]: https://badge.fury.io/js/fuge.svg
+[npm-url]: https://badge.fury.io/js/fuge
+[npm-downloads-badge]: https://img.shields.io/npm/dm/fuge.svg?maxAge=2592000
+[travis-badge]: https://travis-ci.org/apparatus/fuge.svg?branch=master
+[travis-url]: https://travis-ci.org/apparatus/fuge
 [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
 [gitter-url]: https://gitter.im/apparatus
 
 [MIT]: ./LICENSE
 [github issue]: https://github.com/apparatus/fuge-runner/issues/new
+[apparatus team]: https://github.com/apparatus
