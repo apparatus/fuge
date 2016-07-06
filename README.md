@@ -1,9 +1,10 @@
-![fuge-logo](https://github.com/apparatus/fuge.io/blob/master/assets/files/fuge-logo.png)
+![fuge-logo][logo]
 
 # fuge
 [![npm version][npm-badge]][npm-url]
 [![npm downloads][npm-downloads-badge]][npm-url]
 [![Build Status][travis-badge]][travis-url]
+[![Win Status][win-badge]][win-url]
 [![Gitter][gitter-badge]][gitter-url]
 
 Fuge provides a generation and execution environment for microservice development on node.js. It aims to help developers working on microservice systems in several ways,
@@ -27,7 +28,7 @@ npm install -g fuge
 ```
 
 ## Demo
-![demo](https://github.com/apparatus/fuge.io/blob/master/assets/files/demo.gif)
+![demo][demo]
 
 ## Scaffold Generator
 The scaffold generator creates a fully functional microservice system that is ready to run. Once generated you can add additional services manually or by using the service generator.
@@ -168,10 +169,14 @@ documentation, examples, extra testing, or new features please get in touch.
 ## License
 Copyright the apparatus team 2016, Licensed under [MIT][].
 
+[logo]: http://fuge.io/files/fuge-logo.png
+[demo]: http://fuge.io/files/demo.gif
 
 [npm-badge]: https://badge.fury.io/js/fuge.svg
 [npm-url]: https://badge.fury.io/js/fuge
 [npm-downloads-badge]: https://img.shields.io/npm/dm/fuge.svg?maxAge=2592000
+[win-badge]: https://ci.appveyor.com/api/projects/status/github/apparatus/fuge?branch=master&svg=true
+[win-url]: https://ci.appveyor.com/project/mcdonnelldean/fuge
 [travis-badge]: https://travis-ci.org/apparatus/fuge.svg?branch=master
 [travis-url]: https://travis-ci.org/apparatus/fuge
 [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
