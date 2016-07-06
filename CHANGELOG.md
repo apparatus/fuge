@@ -1,3 +1,8 @@
+6 July 2016 - 0.7.0
+* Updated fuge-runner dependency to enable Windows support
+* Added automated testing for Windows via AppVeyor
+* Removed assets folder in favor of pointing at central location
+
 3 May 2016 - 0.6.4
 ---
 * Changed Exit and quit commands so they can exit the whole system or just stop one process
