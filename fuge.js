@@ -6,14 +6,14 @@
  * DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
  * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * SERVICES, LOSS OF USE, DATA, OR PROFITS, OR BUSINESS INTERRUPTION)
  * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-'use strict';
+'use strict'
 
 var program = require('commist')();
 var runner = require('./runner')();
@@ -40,44 +40,44 @@ var buildSystem = function(args) {
 
 
 
-var pullSystem = function(args) {
-  console.log('pulling...');
-  util.compile(args, function(err, system, config) {
-    runner.pullSystem(system, config, function(err) {
-      if (err) { return console.error(err); }
-    });
-  });
-};
+var pullSystem = function (args) {
+  console.log('pulling...')
+  util.compile(args, function (err, system, config) {
+    runner.pullSystem(system, config, function (err) {
+      if (err) { return console.error(err) }
+    })
+  })
+}
 
 
 
-var runSystem = function(args) {
-  console.log('compiling...');
-  util.compile(args, function(err, system, config) {
-    if (err) { return console.error(err); }
-    shell.runSingleCommand(system, config, 'start all');
-  });
-};
+var runSystem = function (args) {
+  console.log('compiling...')
+  util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+    shell.runSingleCommand(system, config, 'start all')
+  })
+}
 
 
 
-var runShell = function(args) {
-  console.log('compiling...');
-  util.compile(args, function(err, system, config) {
-    if (err) { return console.error(err); }
-    shell.run(system, config);
-  });
-};
+var runShell = function (args) {
+  console.log('compiling...')
+  util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+    shell.run(system, config)
+  })
+}
 
 
 
-var previewSystem = function(args) {
-  console.log('compiling...');
-  util.compile(args, function(err, system, config) {
-    if (err) { return console.error(err); }
-    runner.previewSystem(system, config);
-  });
-};
+var previewSystem = function (args) {
+  console.log('compiling...')
+  util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+    runner.previewSystem(system, config)
+  })
+}
 
 
 
@@ -108,12 +108,12 @@ program.register('--help', showHelp);
 
 
 function start(argv) {
-  var remaining = program.parse(argv);
-  if (remaining) { console.error('No matching command.'); }
+  var remaining = program.parse(argv)
+  if (remaining) { console.error('No matching command.') }
 }
 
 
-module.exports = start;
+module.exports = start
 if (require.main === module) {
-  start(process.argv.slice(2));
+  start(process.argv.slice(2))
 }

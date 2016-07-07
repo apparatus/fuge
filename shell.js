@@ -12,14 +12,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-'use strict';
+'use strict'
 
-var _ = require('lodash');
-var Vorpal = require('vorpal');
-var cleanupHandler = require('death');
-var CliTable = require('cli-table');
-var procList = [];
-require('colors');
+var _ = require('lodash')
+var Vorpal = require('vorpal')
+var cleanupHandler = require('death')
+var CliTable = require('cli-table')
+var procList = []
+require('colors')
 
 
 
@@ -29,74 +29,74 @@ require('colors');
  * need a command history
  */
 module.exports = function() {
-  var _config;
-  var _runner;
-  var _proxy;
-  var vorpal =  new Vorpal();
+  var _config
+  var _runner
+  var _proxy
+  var vorpal =  new Vorpal()
   var tableChars = { 'top': '' , 'top-mid': '' , 'top-left': '' , 'top-right': '',
                      'bottom': '' , 'bottom-mid': '' , 'bottom-left': '' , 'bottom-right': '',
                      'left': '' , 'left-mid': '' , 'mid': '' , 'mid-mid': '',
-                     'right': '' , 'right-mid': '' , 'middle': ' ' };
-  var tableStyle = { 'padding-left': 0, 'padding-right': 0 };
+                     'right': '' , 'right-mid': '' , 'middle': ' ' }
+  var tableStyle = { 'padding-left': 0, 'padding-right': 0 }
 
 
 
   var stopSystem = function(system) {
     _runner.stopAll(system, function() {
-      process.exit(0);
-    });
-  };
+      process.exit(0)
+    })
+  }
 
 
   var autoComp = function(system){
     _.each(system.topology.containers, function(container) {
-      procList.push(container.name);
-    });
-  };
+      procList.push(container.name)
+    })
+  }
 
 
   var psList = function(args, system, cb) {
     var table = new CliTable({chars: tableChars, style: tableStyle,
-                              head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white, 'count'.white], colWidths: [30, 15, 15, 15, 15, 5]});
-    var procs = _runner.processes();
-    var counts = _.countBy(_.keys(procs), function(key) { return procs[key].identifier; });
+                              head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white, 'count'.white], colWidths: [30, 15, 15, 15, 15, 5]})
+    var procs = _runner.processes()
+    var counts = _.countBy(_.keys(procs), function(key) { return procs[key].identifier })
 
     _.each(system.topology.containers, function(container) {
       if (!(container.name === '__proxy' || container.type === 'blank-container')) {
         if (container.type === 'docker' && _config.runDocker === false) {
-          table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', '']);
+          table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', ''])
         }
         else {
-          var procKey = _.find(_.keys(procs), function(key) { return procs[key].identifier === container.name; });
+          var procKey = _.find(_.keys(procs), function(key) { return procs[key].identifier === container.name })
           if (procKey) {
-            var proc = procs[procKey];
-            table.push([container.name.green, 
-                        container.type.green, 
-                        container.profiling ? 'profiling'.green : 'running'.green, 
+            var proc = procs[procKey]
+            table.push([container.name.green,
+                        container.type.green,
+                        container.profiling ? 'profiling'.green : 'running'.green,
                         proc.monitor ? 'yes'.green : 'no'.red,
                         proc.tail ? 'yes'.green : 'no'.red,
-                        counts[container.name] ? ('' + counts[container.name]).green : '0'.red]);
+                        counts[container.name] ? ('' + counts[container.name]).green : '0'.red])
           }
           else {
-            table.push([container.name.red, 
-                        container.type.red, 
-                        'stopped'.red, 
+            table.push([container.name.red,
+                        container.type.red,
+                        'stopped'.red,
                         container.monitor ? 'yes'.green : 'no'.red,
                         container.tail ? 'yes'.green : 'no'.red,
-                        '0'.red]);
+                        '0'.red])
           }
         }
       }
-    });
-    console.log(table.toString());
-    cb();
-  };
+    })
+    console.log(table.toString())
+    cb()
+  }
 
 
 
   var proxy = function(args, system, cb) {
-    _proxy.previewAll(system, cb);
-  };
+    _proxy.previewAll(system, cb)
+  }
 
 
 
@@ -104,82 +104,82 @@ module.exports = function() {
     if (args.length === 2) {
       _runner.preview(system, args[1], function(err, command) {
         if (command && command.detail) {
-          var env = '';
-          console.log('command: ' + command.detail.cmd);
-          console.log('directory: ' + command.detail.cwd);
+          var env = ''
+          console.log('command: ' + command.detail.cmd)
+          console.log('directory: ' + command.detail.cwd)
           _.each(_.keys(command.detail.environment), function(key) {
-            env += '  ' + key + '=' + command.detail.environment[key] + '\n';
-          });
-          console.log('environment:\n' + env);
+            env += '  ' + key + '=' + command.detail.environment[key] + '\n'
+          })
+          console.log('environment:\n' + env)
         }
         else {
-          console.log('not managed or unknown process');
+          console.log('not managed or unknown process')
         }
-        cb();
-      });
+        cb()
+      })
     }
     else {
-      cb('process not specified');
+      cb('process not specified')
     }
-  };
+  }
 
 
 
   var stopProcess = function(args, system, cb) {
     if (args.length === 1 && args[0] === 'exit') {
-      stopSystem(system);
-    } 
+      stopSystem(system)
+    }
     else if (args.length === 1 || args[1][0] === 'all') {
-      _runner.stopAll(system, cb);
+      _runner.stopAll(system, cb)
     }
     else {
-      for (var i=0; i<args[1].length; i++){
+      for (var i=0 i<args[1].length i++){
         if (_.includes(procList,args[1][i])){
-         _runner.stop(system, args[1][i], 1, cb);
+         _runner.stop(system, args[1][i], 1, cb)
         }
       }
     }
-  };
+  }
 
 
 
   var startProcess = function(args, system, cb) {
     if (args.length === 1 || args[1][0] === 'all') {
-      _runner.startAll(system, args[2] || 1, cb);
+      _runner.startAll(system, args[2] || 1, cb)
     }
     else {
-      for (var i=0; i<args[1].length; i++){
-      _runner.start(system, args[1][i], 1, cb);
+      for (var i=0 i<args[1].length i++){
+      _runner.start(system, args[1][i], 1, cb)
       }
     }
-  };
+  }
 
 
 
-  var debugProcess = function(args, system, cb) { 
+  var debugProcess = function(args, system, cb) {
     if (args.length === 2) {
       if (!_runner.isProcessRunning(args[1])) {
-        _runner.debug(system, args[1], cb);
+        _runner.debug(system, args[1], cb)
       }
       else {
-        console.log('process already running - terminate to debug');
-        cb();
+        console.log('process already running - terminate to debug')
+        cb()
       }
     }
     else {
-      cb();
+      cb()
     }
-  };
+  }
 
   var profileProcess = function(args, system, cb) {
     if (!_runner.isProcessRunning(args.process)) {
-      _runner.profile(system, args, cb);
+      _runner.profile(system, args, cb)
     }
     else {
-      console.log('process already running - terminate to profile');
-      cb();
+      console.log('process already running - terminate to profile')
+      cb()
     }
-  };
+  }
 
   var profileOptions = function(cmd) {
     cmd
@@ -195,80 +195,80 @@ module.exports = function() {
       .option('--stacks-only', 'Don\'t generate the flamegraph, only create the stacks output. If assigned to '-' stacks output will come through stdout. Use this in combination with the -c gen argument to generate the flamegraph from raw stacks.',
         ['false', 'true', '-'])
       .option('--trace-info', 'Show output from dtrace or perf tools')
-      .option('--cmd, -c', 'Run a "0x command", possible commands are help and gen.', 
+      .option('--cmd, -c', 'Run a "0x command", possible commands are help and gen.',
         ['help', 'gen'])
-      .option('--timestamp-profiles', 'Adds the current timestamp to the Profile Folder\'s name minimizing collisions for in containerized environments');
+      .option('--timestamp-profiles', 'Adds the current timestamp to the Profile Folder\'s name minimizing collisions for in containerized environments')
 
-  };
+  }
 
 
-  var watchProcess = function(args, system, cb) { 
-    var err = null;
+  var watchProcess = function(args, system, cb) {
+    var err = null
     if (args.length === 1 || args[1] === 'all') {
-      _runner.watchAll(system);
+      _runner.watchAll(system)
     }
     else if (args.length >= 2) {
-      err = _runner.watch(system, args[1]);
+      err = _runner.watch(system, args[1])
     }
-    cb(err);
-  };
+    cb(err)
+  }
 
 
 
   var unwatchProcess = function(args, system, cb) {
-    var err = null;
+    var err = null
     if (args.length === 1 || args[1] === 'all') {
-      _runner.unwatchAll(system);
+      _runner.unwatchAll(system)
     }
     else if (args.length >= 2) {
-      err = _runner.unwatch(system, args[1]);
+      err = _runner.unwatch(system, args[1])
     }
-    cb(err);
-  };
+    cb(err)
+  }
 
 
 
   var tailProcess = function(args, system, cb) {
-    var err = null;
+    var err = null
     if (args.length === 1 || args[1] === 'all') {
-      _runner.tailAll(system);
+      _runner.tailAll(system)
     }
     else if (args.length >= 2) {
-      err = _runner.tail(system, args[1], args[2] || 0);
+      err = _runner.tail(system, args[1], args[2] || 0)
     }
-    cb(err);
-  };
+    cb(err)
+  }
 
 
 
   var untailProcess = function(args, system, cb) {
-    var err = null;
+    var err = null
     if (args.length === 1 || args[1] === 'all') {
-      _runner.untailAll(system);
+      _runner.untailAll(system)
     }
     else if (args.length >= 2) {
-      err = _runner.untail(system, args[1]);
+      err = _runner.untail(system, args[1])
     }
-    cb(err);
-  };
+    cb(err)
+  }
 
 
 
   var grepLogs = function(args, system, cb) {
     if (args.length === 2 || args[2] === 'all') {
-      _runner.grepAll(system, _config, args[1], cb);
+      _runner.grepAll(system, _config, args[1], cb)
     }
     else if (args.length >= 2) {
-      _runner.grep(args[2], _config, args[1], cb);
+      _runner.grep(args[2], _config, args[1], cb)
     }
-  };
-    
-    
+  }
+
+
 
   var sendMessage = function(args, system, cb) {
-    console.error('not implemented');
-    cb();
-  };
+    console.error('not implemented')
+    cb()
+  }
 
 
   var commands = [{
@@ -341,12 +341,12 @@ module.exports = function() {
     action: stopProcess,
     description: 'exit system or a single process'
   },
-];
+]
 
 
   var inputStructure = function(command, type, description, action, system){
     // structures the commands and creates the vorpal instances
-    var cmd;
+    var cmd
     if (type !== null && command !== 'exit'){
       cmd = vorpal
         .command(command + type)
@@ -354,28 +354,28 @@ module.exports = function() {
         .description(description)
         .action(function (args, cb) {
           if (command === 'profile') {
-            return action(args, system, cb);
+            return action(args, system, cb)
           }
-          var opt = args.process; // optional argument
-          var arr = [command];
+          var opt = args.process // optional argument
+          var arr = [command]
             if (command === 'send'){
               if (opt !== undefined){
-                for (var i = 0; i < opt.length; i++) {
-                  arr.push(opt[i]);
+                for (var i = 0 i < opt.length i++) {
+                  arr.push(opt[i])
                 }
               }
-              action(arr, system, cb);
+              action(arr, system, cb)
             }
             else {
               if (opt !== undefined){
-              arr.push(opt);
+              arr.push(opt)
             }
-            action(arr, system, cb);
+            action(arr, system, cb)
             }
-          });
+          })
 
       if (command === 'profile') {
-        profileOptions(cmd);
+        profileOptions(cmd)
       }
     }
     // special case for exit
@@ -386,13 +386,13 @@ module.exports = function() {
         .autocomplete(procList)
         .description(description)
         .action(function (args, cb) {
-          var opt = args.process; // optional argument
-          var arr = [command];
+          var opt = args.process // optional argument
+          var arr = [command]
               if (opt !== undefined){
-              arr.push(opt);
+              arr.push(opt)
             }
-            action(arr, system, cb);
-          });
+            action(arr, system, cb)
+          })
       }
       // if no additional arguments are available
     else {
@@ -400,106 +400,104 @@ module.exports = function() {
         .command(command)
         .description(description)
         .action(function (args, cb) {
-          var arr = [command];
-          action(arr, system, cb);
-        });
+          var arr = [command]
+          action(arr, system, cb)
+        })
     }
-  };
+  }
 
 
 
   var repl = function(system) {
-    vorpal.delimiter('?'.green +' fuge>'.bold).show();
-    
-    var exit = vorpal.find('exit'); // override built in exit command
-    if (exit) { 
-    exit.remove();
+    vorpal.delimiter('?'.green +' fuge>'.bold).show()
+
+    var exit = vorpal.find('exit') // override built in exit command
+    if (exit) {
+    exit.remove()
     }
-    
-    autoComp(system); // add all process to autocomplete
-    
+
+    autoComp(system) // add all process to autocomplete
+
     commands.forEach(function (com) {
       //creates a vorpal instance for each object in commands
-      if (com.command === 'watch'|| com.command === 'unwatch' || 
-      com.command === 'grep'|| com.command === 'info' || 
+      if (com.command === 'watch'|| com.command === 'unwatch' ||
+      com.command === 'grep'|| com.command === 'info' ||
       com.command === 'tail' || com.command === 'untail'){
         inputStructure(com.command,'[process]',
-          com.description, com.action, system);
+          com.description, com.action, system)
       }
       else if (com.command === 'debug'){
         inputStructure(com.command,'<process>',
-          com.description, com.action, system);
+          com.description, com.action, system)
       }
       else if (com.command === 'start' || com.command === 'stop' ||
        com.command === 'exit'){
         inputStructure(com.command,'[process...]',
-          com.description, com.action, system);
+          com.description, com.action, system)
       }
       else if (com.command === 'profile'){
         inputStructure(com.command,'<process>',
-          com.description, com.action, system);
+          com.description, com.action, system)
       }
       else if (com.command === 'send'){
         inputStructure(com.command,'<process> <message>',
-          com.description, com.action, system);
+          com.description, com.action, system)
       }
       else {
         inputStructure(com.command,null, com.description,
-          com.action, system);
+          com.action, system)
       }
-    });
-  };
+    })
+  }
 
 
 
   var run = function(system, config) {
-    _config = config;
-    _runner = require('fuge-runner')(_config);
-    _proxy = require('fuge-proxy')(_config);
+    _config = config
+    _runner = require('fuge-runner')(_config)
+    _proxy = require('fuge-proxy')(_config)
 
     cleanupHandler(function() {
-      stopSystem(system);
-    });
+      stopSystem(system)
+    })
 
-    console.log('starting proxy...');
+    console.log('starting proxy...')
     _proxy.startAll(system, function(err) {
-      if (err) { console.log(err); process.exit(0); }
-      console.log('starting shell..');
-      repl(system);
-    });
+      if (err) { console.log(err) process.exit(0) }
+      console.log('starting shell..')
+      repl(system)
+    })
 
-  };
+  }
 
 
 
   var runSingleCommand = function(system, config, command) {
-    _config = config;
-    _runner = require('fuge-runner')(_config);
-    _proxy = require('fuge-proxy')(_config);
+    _config = config
+    _runner = require('fuge-runner')(_config)
+    _proxy = require('fuge-proxy')(_config)
 
     cleanupHandler(function() {
-      stopSystem(system);
-    });
+      stopSystem(system)
+    })
 
-    console.log('starting proxy...');
+    console.log('starting proxy...')
     _proxy.startAll(system, function(err) {
-      if (err) { console.error(err); process.exit(0); }
+      if (err) { console.error(err) process.exit(0) }
 
-      var s = command.split(' ');
-      var cmd = _.find(commands, { command: s[0] });
-      if (!cmd) { console.error('Unknown command:', cmd); process.exit(0); }
+      var s = command.split(' ')
+      var cmd = _.find(commands, { command: s[0] })
+      if (!cmd) { console.error('Unknown command:', cmd) process.exit(0) }
       cmd.action(s, system, function(err){
-        if (err) { console.error(err); }
-      });
-    });
-  };
+        if (err) { console.error(err) }
+      })
+    })
+  }
 
 
 
   return {
     run: run,
     runSingleCommand: runSingleCommand
-  };
-};
-
-
+  }
+}

@@ -12,47 +12,47 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-'use strict';
+'use strict'
 
-var _ = require('lodash');
-var runner;
+var _ = require('lodash')
+var runner
 
 
 module.exports = function() {
 
   var previewSystem = function(system, config) {
-    runner = require('fuge-runner')(config);
+    runner = require('fuge-runner')(config)
     runner.previewAll(system, function(err, result) {
-      if (err) { return console.log(err); }
+      if (err) { return console.log(err) }
       _.each(result, function(command) {
-        var env = '';
-        console.log('executing: ' + command.detail.cmd);
-        console.log('  in directory: ' + command.detail.cwd);
+        var env = ''
+        console.log('executing: ' + command.detail.cmd)
+        console.log('  in directory: ' + command.detail.cwd)
         _.each(_.keys(command.detail.environment), function(key) {
-          env += '    ' + key + '=' + command.detail.environment[key] + '\n';
-        });
-        console.log('  with environment:\n' + env);
-      });
-    });
-  };
+          env += '    ' + key + '=' + command.detail.environment[key] + '\n'
+        })
+        console.log('  with environment:\n' + env)
+      })
+    })
+  }
 
 
 
   var buildSystem = function(system, config, cb) {
-    runner = require('fuge-runner')(config);
+    runner = require('fuge-runner')(config)
     runner.buildAll(system, function(err) {
-      cb(err);
-    });
-  };
+      cb(err)
+    })
+  }
 
 
 
   var pullSystem = function(system, config, cb) {
-    runner = require('fuge-runner')(config);
+    runner = require('fuge-runner')(config)
     runner.pullAll(system, function(err) {
-      cb(err);
-    });
-  };
+      cb(err)
+    })
+  }
 
 
 
@@ -60,6 +60,5 @@ module.exports = function() {
     previewSystem: previewSystem,
     buildSystem: buildSystem,
     pullSystem: pullSystem
-  };
-};
-
+  }
+}

@@ -12,72 +12,74 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-'use strict';
+'use strict'
 
-var fs = require('fs');
-var path = require('path');
-var _ = require('lodash');
-var xeno = require('xenotype')();
+var fs = require('fs')
+var path = require('path')
+var _ = require('lodash')
+var xeno = require('xenotype')()
+var fastseries = require('fastseries')({results: false})
+
 
 
 module.exports = function() {
 
   var applyOverrides = function(system, config) {
     _.each(_.keys(system.topology.containers), function(key) {
-      var container = system.topology.containers[key];
+      var container = system.topology.containers[key]
       if (config && config.overrides && config.overrides[container.name]) {
         if (config.overrides[container.name].run) {
-          console.log('overriding run command for: ' + container.name + ' to: ' + config.overrides[container.name].run);
-          container.specific.execute.exec = config.overrides[container.name].run;
+          console.log('overriding run command for: ' + container.name + ' to: ' + config.overrides[container.name].run)
+          container.specific.execute.exec = config.overrides[container.name].run
         }
 
         if (config.overrides[container.name].build) {
-          console.log('overriding build command for: ' + container.name + ' to: ' + config.overrides[container.name].build);
-          container.specific.buildScript = config.overrides[container.name].build;
+          console.log('overriding build command for: ' + container.name + ' to: ' + config.overrides[container.name].build)
+          container.specific.buildScript = config.overrides[container.name].build
         }
 
         if (config.overrides[container.name].delay) {
-          console.log('adding delay of ' + config.overrides[container.name].delay + 'ms for: ' + container.name);
-          container.specific.execute.delay = config.overrides[container.name].delay;
+          console.log('adding delay of ' + config.overrides[container.name].delay + 'ms for: ' + container.name)
+          container.specific.execute.delay = config.overrides[container.name].delay
         }
       }
 
       if (config && config.tail) {
-        container.tail = true;
+        container.tail = true
       }
 
       if (config && config.monitor) {
-        container.monitor = true;
+        container.monitor = true
       }
-    });
-  };
+    })
+  }
 
   var compile = function(args, cb) {
-    var yamlPath = args[0] || process.cwd() + '/docker-compose.yml';
-    var configPath = (path.dirname(args[0]) || process.cwd()) + '/fuge-config.js';
-    var config = {};
+    var yamlPath = args[0] || process.cwd() + '/docker-compose.yml'
+    var configPath = (path.dirname(args[0]) || process.cwd()) + '/fuge-config.js'
+    var config = {}
 
     if (fs.existsSync(configPath)) {
-      config = require(process.cwd() + '/' + configPath);
+      config = require(process.cwd() + '/' + configPath)
     }
 
     if (!fs.existsSync(yamlPath)) {
-      return console.log('path not found: ' + yamlPath);
+      return console.log('path not found: ' + yamlPath)
     }
 
-    config.logPath = (path.dirname(args[0]) || process.cwd()) + '/log';
+    config.logPath = (path.dirname(args[0]) || process.cwd()) + '/log'
     if (!fs.existsSync(config.logPath)) {
-      fs.mkdirSync(config.logPath);
+      fs.mkdirSync(config.logPath)
     }
 
     xeno.compile(yamlPath, function(err, system) {
-      if (err) { return cb(err); }
-      applyOverrides(system, config);
-      cb(err, system, config);
-    });
-  };
+      if (err) { return cb(err) }
+      applyOverrides(system, config)
+      cb(err, system, config)
+    })
+  }
 
   return {
     compile: compile
-  };
-};
+  }
+}

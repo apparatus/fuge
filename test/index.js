@@ -12,27 +12,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-'use strict';
+'use strict'
 
-var test = require('tape');
-var path = require('path');
-var fs = require('fs');
-var del = require('del');
-var fuge = require('../fuge.js');
+var test = require('tape')
+var path = require('path')
+var fs = require('fs')
+var del = require('del')
+var fuge = require('../fuge.js')
 
-var before = test;
-var fixtures = path.join(__dirname, 'fixtures');
+var before = test
+var fixtures = path.join(__dirname, 'fixtures')
 
 before('set up', function (t) {
-  if (fs.existsSync(fixtures)) { del.sync(fixtures, {force: true}); }
-  fs.mkdirSync(fixtures);
-  process.chdir(fixtures);
-  t.end();
-});
+  if (fs.existsSync(fixtures)) { del.sync(fixtures, {force: true}) }
+  fs.mkdirSync(fixtures)
+  process.chdir(fixtures)
+  t.end()
+})
 
 
 test('fuge generate system -i none', function(t) {
-  t.plan(1);
-  t.doesNotThrow(fuge.bind(fuge, ['generate', 'system', '-i', 'none']));
-  setImmediate(process.exit);
-});
+  t.plan(1)
+  t.doesNotThrow(fuge.bind(fuge, ['generate', 'system', '-i', 'none']))
+  setImmediate(process.exit)
+})
