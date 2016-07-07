@@ -29,20 +29,26 @@ var showVersion = function() {
 
 
 
-var buildSystem = function(args) {
-  console.log('building...');
-  util.compile(args, function(err, system, config) {
-    runner.buildSystem(system, config, function(err) {
-      if (err) { return console.error(err); }
-    });
-  });
-};
+
+var buildSystem = function (args) {
+  console.log('building...')
+
+  util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+
+    runner.buildSystem(system, config, function (err) {
+      if (err) { return console.error(err) }
+    })
+  })
+}
 
 
 
 var pullSystem = function (args) {
   console.log('pulling...')
   util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+
     runner.pullSystem(system, config, function (err) {
       if (err) { return console.error(err) }
     })
@@ -107,7 +113,7 @@ program.register('--help', showHelp);
 
 
 
-function start(argv) {
+function start (argv) {
   var remaining = program.parse(argv)
   if (remaining) { console.error('No matching command.') }
 }
