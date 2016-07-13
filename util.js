@@ -18,7 +18,6 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('lodash');
 var xeno = require('xenotype')();
-var fastseries = require('fastseries')({results: false});
 
 
 module.exports = function() {
@@ -31,7 +30,7 @@ module.exports = function() {
           console.log('overriding run command for: ' + container.name + ' to: ' + config.overrides[container.name].run);
           container.specific.execute.exec = config.overrides[container.name].run;
         }
-      
+
         if (config.overrides[container.name].build) {
           console.log('overriding build command for: ' + container.name + ' to: ' + config.overrides[container.name].build);
           container.specific.buildScript = config.overrides[container.name].build;
@@ -78,57 +77,7 @@ module.exports = function() {
     });
   };
 
-  var locateGenerator = function locateGenerator(name) {
-    var gen = 'app';
-    if (!/generator-/.test(name)) { name = 'generator-' + name; }
-
-    if (/:/.test(name)) {
-      var split = name.split(':');
-      name = split[0];
-      gen = split[1];
-    }
-
-    return require.resolve(
-      path.join(__dirname, 'node_modules', name, 'generators', gen, 'index.js')
-    );
-  };
-
-  var runYo = function runYo(env, gen, opts, cb) {
-    var cwd = process.cwd();
-    if (env.cwd) { process.chdir(env.cwd); }
-
-    env.run(gen, opts, function (err) {
-      process.chdir(cwd);
-      cb(err);
-    });
-  };
-
-  var series = function series(list, cb) {
-    return fastseries({}, list, undefined, cb);
-  };
-
-  var inq = function inq(str, def, choices) {
-    if (Array.isArray(def)) {
-      choices = def;
-      def = choices[0];
-    }
-    choices = choices || [];
-    def = def || choices[0];
-    choices = choices.map(function (choice) {
-      return choice === def ? '\u001b[4m' + choice + '\u001b[24m' : choice;
-    });
-    var info = !choices.length ? (('(' + def + ')') || '') : '(' + choices.join(', ') + ')';
-
-    return '\u001b[32m?\u001b[39m \u001b[1m' + str + 
-      '\u001b[22m \u001b[2m' + info + '\u001b[22m: ';
-  };
-
   return {
-    compile: compile,
-    locateGenerator: locateGenerator,
-    runYo: runYo,
-    series: series,
-    inq: inq
+    compile: compile
   };
 };
-
