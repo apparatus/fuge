@@ -1,3 +1,6 @@
+WIP -
+* Removed generator functionality and dependencies
+
 6 July 2016 - 0.7.0
 * Updated fuge-runner dependency to enable Windows support
 * Added automated testing for Windows via AppVeyor
