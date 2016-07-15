@@ -38,7 +38,7 @@
     "fuge": "./fuge.js"
   },
   "scripts": {
-    "lint": "jshint --exclude ./node_modules .",
+    "lint": "spacey-standard",
     "test": "npm run lint && node test",
     "coverage": "istanbul cover test/*Test.js && open ./coverage/lcov-report/index.html",
     "coverage-check": "istanbul cover test/*Test.js && istanbul check-coverage",
@@ -46,8 +46,8 @@
   },
   "devDependencies": {
     "del": "^2.1.0",
-    "jshint": "^2.9.1-rc1",
     "pre-commit": "^1.1.1",
+    "spacey-standard": "^3.0.0",
     "tape": "^4.2.0"
   }
 }

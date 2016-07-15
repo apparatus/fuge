@@ -13,107 +13,112 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-'use strict';
+'use strict'
 
-var program = require('commist')();
-var runner = require('./runner')();
-var shell = require('./shell')();
-var util = require('./util')();
-var pkg = require('./package.json');
-
-
-
-var showVersion = function() {
-  console.log('v' + pkg.version);
-};
+var program = require('commist')()
+var runner = require('./runner')()
+var shell = require('./shell')()
+var util = require('./util')()
+var pkg = require('./package.json')
 
 
 
-var buildSystem = function(args) {
-  console.log('building...');
-  util.compile(args, function(err, system, config) {
-    runner.buildSystem(system, config, function(err) {
-      if (err) { return console.error(err); }
-    });
-  });
-};
-
-
-
-var pullSystem = function(args) {
-  console.log('pulling...');
-  util.compile(args, function(err, system, config) {
-    runner.pullSystem(system, config, function(err) {
-      if (err) { return console.error(err); }
-    });
-  });
-};
-
-
-
-var runSystem = function(args) {
-  console.log('compiling...');
-  util.compile(args, function(err, system, config) {
-    if (err) { return console.error(err); }
-    shell.runSingleCommand(system, config, 'start all');
-  });
-};
-
-
-
-var runShell = function(args) {
-  console.log('compiling...');
-  util.compile(args, function(err, system, config) {
-    if (err) { return console.error(err); }
-    shell.run(system, config);
-  });
-};
-
-
-
-var previewSystem = function(args) {
-  console.log('compiling...');
-  util.compile(args, function(err, system, config) {
-    if (err) { return console.error(err); }
-    runner.previewSystem(system, config);
-  });
-};
-
-
-
-var showHelp = function() {
-  console.log('usage: fuge <command> <options>');
-  console.log('');
-  console.log('fuge build                      build a system by executing the RUN commands in each services Dockerfile');
-  console.log('fuge pull                       update a system by attempting a git pull against each service');
-  console.log('fuge run <compose-file>         run a system');
-  console.log('fuge preview <compose-file>     preview a run command for a system');
-  console.log('fuge shell <compose-file>       start an interactive shell for a system');
-  console.log('fuge version                    version of fuge');
-  console.log('fuge help                       show this help');
-};
-
-
-
-program.register('build', buildSystem);
-program.register('pull', pullSystem);
-program.register('run', runSystem);
-program.register('preview', previewSystem);
-program.register('shell', runShell);
-program.register('version', showVersion);
-program.register('--version', showVersion);
-program.register('help', showHelp);
-program.register('--help', showHelp);
-
-
-
-function start(argv) {
-  var remaining = program.parse(argv);
-  if (remaining) { console.error('No matching command.'); }
+var showVersion = function () {
+  console.log('v' + pkg.version)
 }
 
 
-module.exports = start;
+
+var buildSystem = function (args) {
+  console.log('building...')
+
+  util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+
+    runner.buildSystem(system, config, function (err) {
+      if (err) { return console.error(err) }
+    })
+  })
+}
+
+
+
+var pullSystem = function (args) {
+  console.log('pulling...')
+  util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+
+    runner.pullSystem(system, config, function (err) {
+      if (err) { return console.error(err) }
+    })
+  })
+}
+
+
+
+var runSystem = function (args) {
+  console.log('compiling...')
+  util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+    shell.runSingleCommand(system, config, 'start all')
+  })
+}
+
+
+
+var runShell = function (args) {
+  console.log('compiling...')
+  util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+    shell.run(system, config)
+  })
+}
+
+
+
+var previewSystem = function (args) {
+  console.log('compiling...')
+  util.compile(args, function (err, system, config) {
+    if (err) { return console.error(err) }
+    runner.previewSystem(system, config)
+  })
+}
+
+
+
+var showHelp = function () {
+  console.log('usage: fuge <command> <options>')
+  console.log('')
+  console.log('fuge build                      build a system by executing the RUN commands in each services Dockerfile')
+  console.log('fuge pull                       update a system by attempting a git pull against each service')
+  console.log('fuge run <compose-file>         run a system')
+  console.log('fuge preview <compose-file>     preview a run command for a system')
+  console.log('fuge shell <compose-file>       start an interactive shell for a system')
+  console.log('fuge version                    version of fuge')
+  console.log('fuge help                       show this help')
+}
+
+
+
+program.register('build', buildSystem)
+program.register('pull', pullSystem)
+program.register('run', runSystem)
+program.register('preview', previewSystem)
+program.register('shell', runShell)
+program.register('version', showVersion)
+program.register('--version', showVersion)
+program.register('help', showHelp)
+program.register('--help', showHelp)
+
+
+
+function start (argv) {
+  var remaining = program.parse(argv)
+  if (remaining) { console.error('No matching command.') }
+}
+
+
+module.exports = start
 if (require.main === module) {
-  start(process.argv.slice(2));
+  start(process.argv.slice(2))
 }
