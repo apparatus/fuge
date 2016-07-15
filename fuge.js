@@ -15,18 +15,17 @@
 
 'use strict'
 
-var program = require('commist')();
-var runner = require('./runner')();
-var shell = require('./shell')();
-var util = require('./util')();
-var pkg = require('./package.json');
+var program = require('commist')()
+var runner = require('./runner')()
+var shell = require('./shell')()
+var util = require('./util')()
+var pkg = require('./package.json')
 
 
 
-var showVersion = function() {
-  console.log('v' + pkg.version);
-};
-
+var showVersion = function () {
+  console.log('v' + pkg.version)
+}
 
 
 
@@ -87,29 +86,29 @@ var previewSystem = function (args) {
 
 
 
-var showHelp = function() {
-  console.log('usage: fuge <command> <options>');
-  console.log('');
-  console.log('fuge build                      build a system by executing the RUN commands in each services Dockerfile');
-  console.log('fuge pull                       update a system by attempting a git pull against each service');
-  console.log('fuge run <compose-file>         run a system');
-  console.log('fuge preview <compose-file>     preview a run command for a system');
-  console.log('fuge shell <compose-file>       start an interactive shell for a system');
-  console.log('fuge version                    version of fuge');
-  console.log('fuge help                       show this help');
-};
+var showHelp = function () {
+  console.log('usage: fuge <command> <options>')
+  console.log('')
+  console.log('fuge build                      build a system by executing the RUN commands in each services Dockerfile')
+  console.log('fuge pull                       update a system by attempting a git pull against each service')
+  console.log('fuge run <compose-file>         run a system')
+  console.log('fuge preview <compose-file>     preview a run command for a system')
+  console.log('fuge shell <compose-file>       start an interactive shell for a system')
+  console.log('fuge version                    version of fuge')
+  console.log('fuge help                       show this help')
+}
 
 
 
-program.register('build', buildSystem);
-program.register('pull', pullSystem);
-program.register('run', runSystem);
-program.register('preview', previewSystem);
-program.register('shell', runShell);
-program.register('version', showVersion);
-program.register('--version', showVersion);
-program.register('help', showHelp);
-program.register('--help', showHelp);
+program.register('build', buildSystem)
+program.register('pull', pullSystem)
+program.register('run', runSystem)
+program.register('preview', previewSystem)
+program.register('shell', runShell)
+program.register('version', showVersion)
+program.register('--version', showVersion)
+program.register('help', showHelp)
+program.register('--help', showHelp)
 
 
 
