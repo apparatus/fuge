@@ -47,7 +47,7 @@
   "devDependencies": {
     "del": "^2.1.0",
     "pre-commit": "^1.1.1",
-    "spacey-standard": "^2.0.0",
+    "spacey-standard": "^3.0.0",
     "tape": "^4.2.0"
   }
 }
