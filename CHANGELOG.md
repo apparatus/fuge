@@ -1,5 +1,6 @@
 WIP -
 * Removed generator functionality and dependencies
+* Added __git generate user/repo__ functionality
 
 6 July 2016 - 0.7.0
 * Updated fuge-runner dependency to enable Windows support

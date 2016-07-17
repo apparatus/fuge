@@ -31,7 +31,7 @@ before('set up', function (t) {
 })
 
 
-test('fuge generate system -i none', function (t) {
+test.skip('fuge generate system -i none', function (t) {
   t.plan(1)
   t.doesNotThrow(fuge.bind(fuge, ['generate', 'system', '-i', 'none']))
   setImmediate(process.exit)

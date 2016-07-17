@@ -7,7 +7,7 @@
 [![Win Status][win-badge]][win-url]
 [![Gitter][gitter-badge]][gitter-url]
 
-Fuge provides a generation and execution environment for microservice development on node.js. It aims to help developers working on microservice systems in several ways,
+Fuge provides a generation and execution environment for microservice development on Node.js. It aims to help developers working on microservice systems in several ways,
 
 - By providing a microservice scaffold generator
 - By providing a service execution environment
