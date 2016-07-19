@@ -468,10 +468,11 @@ module.exports = function () {
     _proxy.startAll(system, function (err) {
       if (err) { console.error(err); process.exit(0) }
 
-      var s = command.split(' ')
-      var cmd = _.find(commands, { command: s[0] })
+      var commandName = command.split(' ')[0]
+      var commandArgs = command.split(' ').slice(1)
+      var cmd = _.find(commands, { command: commandName })
       if (!cmd) { console.error('Unknown command:', cmd); process.exit(0) }
-      cmd.action(s, system, function (err) {
+      cmd.action([commandName, commandArgs], system, function (err) {
         if (err) { console.error(err) }
       })
     })
