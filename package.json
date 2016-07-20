@@ -7,13 +7,14 @@
     "manager",
     "generator"
   ],
-  "version": "0.7.0",
+  "version": "0.8.0",
   "license": "MIT",
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
     "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)",
     "David Mark Clements <david.clements@nearform.com> (http://davidmarkclements.com)",
-    "Matthew O'Connor (https://github.com/matthewoconnor-development)"
+    "Matthew O'Connor (https://github.com/matthewoconnor-development)",
+    "Mihai Dima (https://github.com/mihaidma)"
   ],
   "main": "./fuge.js",
   "engines": {
@@ -25,7 +26,7 @@
     "commist": "^1.0.0",
     "death": "^1.0.0",
     "fuge-proxy": "^0.4.0",
-    "fuge-runner": "^0.8.4",
+    "fuge-runner": "^0.9.0",
     "lodash": "^4.5.0",
     "vorpal": "^1.10.8",
     "xenotype": "^0.4.1"
