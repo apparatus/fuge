@@ -248,14 +248,19 @@ module.exports = function () {
 
 
 
-  var grepLogs = function (args, system, cb) {
-    if (args.length === 2 || args[2] === 'all') {
-      _runner.grepAll(system, _config, args[1], cb)
-    } else if (args.length >= 2) {
-      _runner.grep(args[2], _config, args[1], cb)
+  var grepLogs = function(args, system, cb) {
+    if(args[1]){
+      if (args[1].length === 1 || args[1][1] === 'all') {
+        _runner.grepAll(system, _config, args[1], cb);
+      }
+      else if (args[1].length > 1) {
+        _runner.grep(args[1][1], _config, args[1][0], cb);
+      }
+    }
+    else{
+      cb()
     }
   }
-
 
 
   var sendMessage = function (args, system, cb) {
@@ -416,12 +421,11 @@ module.exports = function () {
     // creates a vorpal instance for each object in commands
     commands.forEach(function (com) {
       if (com.command === 'watch' || com.command === 'unwatch' ||
-        com.command === 'grep' || com.command === 'info' ||
-        com.command === 'tail' || com.command === 'untail') {
+        com.command === 'info' ||  com.command === 'tail' || com.command === 'untail') {
         inputStructure(com.command, '[process]', com.description, com.action, system)
       } else if (com.command === 'debug') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
-      } else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit') {
+      } else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit' || com.command === 'grep') {
         inputStructure(com.command, '[process...]', com.description, com.action, system)
       } else if (com.command === 'profile') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
