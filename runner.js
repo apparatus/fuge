@@ -19,7 +19,6 @@ var runner
 
 
 module.exports = function () {
-
   var previewSystem = function (system, config) {
     runner = require('fuge-runner')(config)
     runner.previewAll(system, function (err, result) {
@@ -37,14 +36,12 @@ module.exports = function () {
   }
 
 
-
   var buildSystem = function (system, config, cb) {
     runner = require('fuge-runner')(config)
     runner.buildAll(system, function (err) {
       cb(err)
     })
   }
-
 
 
   var pullSystem = function (system, config, cb) {
@@ -55,14 +52,12 @@ module.exports = function () {
   }
 
 
-
   var generateRepo = function (name, cb) {
     runner = require('fuge-runner')()
     runner.generate(name, function (err) {
       cb(err)
     })
   }
-
 
 
   return {

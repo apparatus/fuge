@@ -19,14 +19,12 @@ var program = require('commist')()
 var runner = require('./runner')()
 var shell = require('./shell')()
 var util = require('./util')()
-var pkg = require('./package.json')
-
+var Pkg = require('./package.json')
 
 
 var showVersion = function () {
-  console.log('v' + pkg.version)
+  console.log('v' + Pkg.version)
 }
-
 
 
 var buildSystem = function (args) {
@@ -42,7 +40,6 @@ var buildSystem = function (args) {
 }
 
 
-
 var pullSystem = function (args) {
   console.log('pulling...')
 
@@ -56,7 +53,6 @@ var pullSystem = function (args) {
 }
 
 
-
 var generateRepo = function (args) {
   console.log('pulling...')
 
@@ -68,7 +64,6 @@ var generateRepo = function (args) {
 }
 
 
-
 var runSystem = function (args) {
   console.log('compiling...')
   util.compile(args, function (err, system, config) {
@@ -76,7 +71,6 @@ var runSystem = function (args) {
     shell.runSingleCommand(system, config, 'start all')
   })
 }
-
 
 
 var runShell = function (args) {
@@ -88,7 +82,6 @@ var runShell = function (args) {
 }
 
 
-
 var previewSystem = function (args) {
   console.log('compiling...')
   util.compile(args, function (err, system, config) {
@@ -96,7 +89,6 @@ var previewSystem = function (args) {
     runner.previewSystem(system, config)
   })
 }
-
 
 
 var showHelp = function () {
@@ -113,7 +105,6 @@ var showHelp = function () {
 }
 
 
-
 program.register('build', buildSystem)
 program.register('pull', pullSystem)
 program.register('generate', generateRepo)
@@ -124,7 +115,6 @@ program.register('version', showVersion)
 program.register('--version', showVersion)
 program.register('help', showHelp)
 program.register('--help', showHelp)
-
 
 
 function start (argv) {

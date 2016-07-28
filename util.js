@@ -14,15 +14,13 @@
 
 'use strict'
 
-var fs = require('fs')
-var path = require('path')
+var Fs = require('fs')
+var Path = require('path')
 var _ = require('lodash')
 var xeno = require('xenotype')()
 
 
-
 module.exports = function () {
-
   var applyOverrides = function (system, config) {
     _.each(_.keys(system.topology.containers), function (key) {
       var container = system.topology.containers[key]
@@ -55,20 +53,20 @@ module.exports = function () {
 
   var compile = function (args, cb) {
     var yamlPath = args[0] || process.cwd() + '/docker-compose.yml'
-    var configPath = (path.dirname(args[0]) || process.cwd()) + '/fuge-config.js'
+    var configPath = (Path.dirname(args[0]) || process.cwd()) + '/fuge-config.js'
     var config = {}
 
-    if (fs.existsSync(configPath)) {
+    if (Fs.existsSync(configPath)) {
       config = require(process.cwd() + '/' + configPath)
     }
 
-    if (!fs.existsSync(yamlPath)) {
+    if (!Fs.existsSync(yamlPath)) {
       return console.log('path not found: ' + yamlPath)
     }
 
-    config.logPath = (path.dirname(args[0]) || process.cwd()) + '/log'
-    if (!fs.existsSync(config.logPath)) {
-      fs.mkdirSync(config.logPath)
+    config.logPath = (Path.dirname(args[0]) || process.cwd()) + '/log'
+    if (!Fs.existsSync(config.logPath)) {
+      Fs.mkdirSync(config.logPath)
     }
 
     xeno.compile(yamlPath, function (err, system) {

@@ -14,7 +14,8 @@
     "Peter Elger <elger.peter@gmail.com> (http://peterelger.com/)",
     "David Mark Clements <david.clements@nearform.com> (http://davidmarkclements.com)",
     "Matthew O'Connor (https://github.com/matthewoconnor-development)",
-    "Mihai Dima (https://github.com/mihaidma)"
+    "Mihai Dima (https://github.com/mihaidma)",
+    "Shane Lacey (https://github.com/shanel262)"
   ],
   "main": "./fuge.js",
   "engines": {

@@ -16,11 +16,10 @@
 
 var _ = require('lodash')
 var Vorpal = require('vorpal')
-var cleanupHandler = require('death')
+var CleanupHandler = require('death')
 var CliTable = require('cli-table')
 var procList = []
 require('colors')
-
 
 
 /**
@@ -47,7 +46,6 @@ module.exports = function () {
   }
 
 
-
   var stopSystem = function (system) {
     _runner.stopAll(system, function () {
       process.exit(0)
@@ -72,7 +70,8 @@ module.exports = function () {
       if (!(container.name === '__proxy' || container.type === 'blank-container')) {
         if (container.type === 'docker' && _config.runDocker === false) {
           table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', ''])
-        } else {
+        }
+        else {
           var procKey = _.find(_.keys(procs), function (key) { return procs[key].identifier === container.name })
           if (procKey) {
             var proc = procs[procKey]
@@ -82,7 +81,8 @@ module.exports = function () {
                         proc.monitor ? 'yes'.green : 'no'.red,
                         proc.tail ? 'yes'.green : 'no'.red,
                         counts[container.name] ? ('' + counts[container.name]).green : '0'.red])
-          } else {
+          }
+          else {
             table.push([container.name.red,
                         container.type.red,
                         'stopped'.red,
@@ -98,11 +98,9 @@ module.exports = function () {
   }
 
 
-
   var proxy = function (args, system, cb) {
     _proxy.previewAll(system, cb)
   }
-
 
 
   var showInfo = function (args, system, cb) {
@@ -117,24 +115,27 @@ module.exports = function () {
             env += '  ' + key + '=' + command.detail.environment[key] + '\n'
           })
           console.log('environment:\n' + env)
-        } else {
+        }
+        else {
           console.log('not managed or unknown process')
         }
         cb()
       })
-    } else {
+    }
+    else {
       cb('process not specified')
     }
   }
 
 
-
   var stopProcess = function (args, system, cb) {
     if (args.length === 1 && args[0] === 'exit') {
       stopSystem(system)
-    } else if (args.length === 1 || args[1][0] === 'all') {
+    }
+    else if (args.length === 1 || args[1][0] === 'all') {
       _runner.stopAll(system, cb)
-    } else {
+    }
+    else {
       for (var i = 0; i < args[1].length; i++) {
         if (_.includes(procList, args[1][i])) {
           _runner.stop(system, args[1][i], 1, cb)
@@ -144,11 +145,11 @@ module.exports = function () {
   }
 
 
-
   var startProcess = function (args, system, cb) {
     if (args.length === 1 || args[1][0] === 'all') {
       _runner.startAll(system, args[2] || 1, cb)
-    } else {
+    }
+    else {
       for (var i = 0; i < args[1].length; i++) {
         _runner.start(system, args[1][i], 1, cb)
       }
@@ -156,16 +157,17 @@ module.exports = function () {
   }
 
 
-
   var debugProcess = function (args, system, cb) {
     if (args.length === 2) {
       if (!_runner.isProcessRunning(args[1])) {
         _runner.debug(system, args[1], cb)
-      } else {
+      }
+      else {
         console.log('process already running - terminate to debug')
         cb()
       }
-    } else {
+    }
+    else {
       cb()
     }
   }
@@ -173,7 +175,8 @@ module.exports = function () {
   var profileProcess = function (args, system, cb) {
     if (!_runner.isProcessRunning(args.process)) {
       _runner.profile(system, args, cb)
-    } else {
+    }
+    else {
       console.log('process already running - terminate to profile')
       cb()
     }
@@ -196,7 +199,6 @@ module.exports = function () {
       .option('--cmd, -c', 'Run a "0x command", possible commands are help and gen.',
         ['help', 'gen'])
       .option('--timestamp-profiles', 'Adds the current timestamp to the Profile Folder\'s name minimizing collisions for in containerized environments')
-
   }
 
 
@@ -204,60 +206,60 @@ module.exports = function () {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
       _runner.watchAll(system)
-    } else if (args.length >= 2) {
+    }
+    else if (args.length >= 2) {
       err = _runner.watch(system, args[1])
     }
     cb(err)
   }
 
 
-
   var unwatchProcess = function (args, system, cb) {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
       _runner.unwatchAll(system)
-    } else if (args.length >= 2) {
+    }
+    else if (args.length >= 2) {
       err = _runner.unwatch(system, args[1])
     }
     cb(err)
   }
 
 
-
   var tailProcess = function (args, system, cb) {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
       _runner.tailAll(system)
-    } else if (args.length >= 2) {
+    }
+    else if (args.length >= 2) {
       err = _runner.tail(system, args[1], args[2] || 0)
     }
     cb(err)
   }
 
 
-
   var untailProcess = function (args, system, cb) {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
       _runner.untailAll(system)
-    } else if (args.length >= 2) {
+    }
+    else if (args.length >= 2) {
       err = _runner.untail(system, args[1])
     }
     cb(err)
   }
 
 
-
-  var grepLogs = function(args, system, cb) {
-    if(args[1]){
+  var grepLogs = function (args, system, cb) {
+    if (args[1]) {
       if (args[1].length === 1 || args[1][1] === 'all') {
-        _runner.grepAll(system, _config, args[1], cb);
+        _runner.grepAll(system, _config, args[1], cb)
       }
       else if (args[1].length > 1) {
-        _runner.grep(args[1][1], _config, args[1][0], cb);
+        _runner.grep(args[1][1], _config, args[1][0], cb)
       }
     }
-    else{
+    else {
       cb()
     }
   }
@@ -367,7 +369,8 @@ module.exports = function () {
             }
 
             action(arr, system, cb)
-          } else {
+          }
+          else {
             if (opt !== undefined) {
               arr.push(opt)
             }
@@ -379,7 +382,8 @@ module.exports = function () {
       if (command === 'profile') {
         profileOptions(cmd)
       }
-    } else if (command === 'exit') {
+    }
+    else if (command === 'exit') {
       vorpal
         .command(command + type)
         .alias('quit')
@@ -395,7 +399,8 @@ module.exports = function () {
 
           action(arr, system, cb)
         })
-    } else {
+    }
+    else {
       cmd = vorpal
         .command(command)
         .description(description)
@@ -405,7 +410,6 @@ module.exports = function () {
         })
     }
   }
-
 
 
   var repl = function (system) {
@@ -421,22 +425,26 @@ module.exports = function () {
     // creates a vorpal instance for each object in commands
     commands.forEach(function (com) {
       if (com.command === 'watch' || com.command === 'unwatch' ||
-        com.command === 'info' ||  com.command === 'tail' || com.command === 'untail') {
+        com.command === 'info' || com.command === 'tail' || com.command === 'untail') {
         inputStructure(com.command, '[process]', com.description, com.action, system)
-      } else if (com.command === 'debug') {
+      }
+      else if (com.command === 'debug') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
-      } else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit' || com.command === 'grep') {
+      }
+      else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit' || com.command === 'grep') {
         inputStructure(com.command, '[process...]', com.description, com.action, system)
-      } else if (com.command === 'profile') {
+      }
+      else if (com.command === 'profile') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
-      } else if (com.command === 'send') {
+      }
+      else if (com.command === 'send') {
         inputStructure(com.command, '<process> <message>', com.description, com.action, system)
-      } else {
+      }
+      else {
         inputStructure(com.command, null, com.description, com.action, system)
       }
     })
   }
-
 
 
   var run = function (system, config) {
@@ -444,7 +452,7 @@ module.exports = function () {
     _runner = require('fuge-runner')(_config)
     _proxy = require('fuge-proxy')(_config)
 
-    cleanupHandler(function () {
+    CleanupHandler(function () {
       stopSystem(system)
     })
 
@@ -454,9 +462,7 @@ module.exports = function () {
       console.log('starting shell..')
       repl(system)
     })
-
   }
-
 
 
   var runSingleCommand = function (system, config, command) {
@@ -464,7 +470,7 @@ module.exports = function () {
     _runner = require('fuge-runner')(_config)
     _proxy = require('fuge-proxy')(_config)
 
-    cleanupHandler(function () {
+    CleanupHandler(function () {
       stopSystem(system)
     })
 
@@ -481,7 +487,6 @@ module.exports = function () {
       })
     })
   }
-
 
 
   return {
