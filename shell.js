@@ -16,11 +16,10 @@
 
 var _ = require('lodash')
 var Vorpal = require('vorpal')
-var cleanupHandler = require('death')
+var CleanupHandler = require('death')
 var CliTable = require('cli-table')
 var procList = []
 require('colors')
-
 
 
 /**
@@ -45,7 +44,6 @@ module.exports = function () {
     'padding-left': 0,
     'padding-right': 0
   }
-
 
 
   var stopSystem = function (system) {
@@ -98,11 +96,9 @@ module.exports = function () {
   }
 
 
-
   var proxy = function (args, system, cb) {
     _proxy.previewAll(system, cb)
   }
-
 
 
   var showInfo = function (args, system, cb) {
@@ -128,7 +124,6 @@ module.exports = function () {
   }
 
 
-
   var stopProcess = function (args, system, cb) {
     if (args.length === 1 && args[0] === 'exit') {
       stopSystem(system)
@@ -144,7 +139,6 @@ module.exports = function () {
   }
 
 
-
   var startProcess = function (args, system, cb) {
     if (args.length === 1 || args[1][0] === 'all') {
       _runner.startAll(system, args[2] || 1, cb)
@@ -154,7 +148,6 @@ module.exports = function () {
       }
     }
   }
-
 
 
   var debugProcess = function (args, system, cb) {
@@ -196,7 +189,6 @@ module.exports = function () {
       .option('--cmd, -c', 'Run a "0x command", possible commands are help and gen.',
         ['help', 'gen'])
       .option('--timestamp-profiles', 'Adds the current timestamp to the Profile Folder\'s name minimizing collisions for in containerized environments')
-
   }
 
 
@@ -211,7 +203,6 @@ module.exports = function () {
   }
 
 
-
   var unwatchProcess = function (args, system, cb) {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
@@ -221,7 +212,6 @@ module.exports = function () {
     }
     cb(err)
   }
-
 
 
   var tailProcess = function (args, system, cb) {
@@ -235,7 +225,6 @@ module.exports = function () {
   }
 
 
-
   var untailProcess = function (args, system, cb) {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
@@ -247,15 +236,17 @@ module.exports = function () {
   }
 
 
-
   var grepLogs = function (args, system, cb) {
-    if (args.length === 2 || args[2] === 'all') {
-      _runner.grepAll(system, _config, args[1], cb)
-    } else if (args.length >= 2) {
-      _runner.grep(args[2], _config, args[1], cb)
+    if (args[1]) {
+      if (args[1].length === 1 || args[1][1] === 'all') {
+        _runner.grepAll(system, _config, args[1], cb)
+      } else if (args[1].length > 1) {
+        _runner.grep(args[1][1], _config, args[1][0], cb)
+      }
+    } else {
+      cb()
     }
   }
-
 
 
   var sendMessage = function (args, system, cb) {
@@ -402,7 +393,6 @@ module.exports = function () {
   }
 
 
-
   var repl = function (system) {
     vorpal.delimiter('?'.green + ' fuge>'.bold).show()
 
@@ -416,12 +406,11 @@ module.exports = function () {
     // creates a vorpal instance for each object in commands
     commands.forEach(function (com) {
       if (com.command === 'watch' || com.command === 'unwatch' ||
-        com.command === 'grep' || com.command === 'info' ||
-        com.command === 'tail' || com.command === 'untail') {
+        com.command === 'info' || com.command === 'tail' || com.command === 'untail') {
         inputStructure(com.command, '[process]', com.description, com.action, system)
       } else if (com.command === 'debug') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
-      } else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit') {
+      } else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit' || com.command === 'grep') {
         inputStructure(com.command, '[process...]', com.description, com.action, system)
       } else if (com.command === 'profile') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
@@ -434,13 +423,12 @@ module.exports = function () {
   }
 
 
-
   var run = function (system, config) {
     _config = config
     _runner = require('fuge-runner')(_config)
     _proxy = require('fuge-proxy')(_config)
 
-    cleanupHandler(function () {
+    CleanupHandler(function () {
       stopSystem(system)
     })
 
@@ -450,9 +438,7 @@ module.exports = function () {
       console.log('starting shell..')
       repl(system)
     })
-
   }
-
 
 
   var runSingleCommand = function (system, config, command) {
@@ -460,7 +446,7 @@ module.exports = function () {
     _runner = require('fuge-runner')(_config)
     _proxy = require('fuge-proxy')(_config)
 
-    cleanupHandler(function () {
+    CleanupHandler(function () {
       stopSystem(system)
     })
 
@@ -477,7 +463,6 @@ module.exports = function () {
       })
     })
   }
-
 
 
   return {

@@ -14,25 +14,25 @@
 
 'use strict'
 
-var test = require('tape')
-var path = require('path')
-var fs = require('fs')
-var del = require('del')
-var fuge = require('../fuge.js')
+var Test = require('tape')
+var Path = require('path')
+var Fs = require('fs')
+var Del = require('del')
+var Fuge = require('../fuge.js')
 
-var before = test
-var fixtures = path.join(__dirname, 'fixtures')
+var before = Test
+var fixtures = Path.join(__dirname, 'fixtures')
 
 before('set up', function (t) {
-  if (fs.existsSync(fixtures)) { del.sync(fixtures, {force: true}) }
-  fs.mkdirSync(fixtures)
+  if (Fs.existsSync(fixtures)) { Del.sync(fixtures, {force: true}) }
+  Fs.mkdirSync(fixtures)
   process.chdir(fixtures)
   t.end()
 })
 
 
-test.skip('fuge generate system -i none', function (t) {
+Test.skip('fuge generate system -i none', function (t) {
   t.plan(1)
-  t.doesNotThrow(fuge.bind(fuge, ['generate', 'system', '-i', 'none']))
+  t.doesNotThrow(Fuge.bind(Fuge, ['generate', 'system', '-i', 'none']))
   setImmediate(process.exit)
 })
