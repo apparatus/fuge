@@ -70,8 +70,7 @@ module.exports = function () {
       if (!(container.name === '__proxy' || container.type === 'blank-container')) {
         if (container.type === 'docker' && _config.runDocker === false) {
           table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', ''])
-        }
-        else {
+        } else {
           var procKey = _.find(_.keys(procs), function (key) { return procs[key].identifier === container.name })
           if (procKey) {
             var proc = procs[procKey]
@@ -81,8 +80,7 @@ module.exports = function () {
                         proc.monitor ? 'yes'.green : 'no'.red,
                         proc.tail ? 'yes'.green : 'no'.red,
                         counts[container.name] ? ('' + counts[container.name]).green : '0'.red])
-          }
-          else {
+          } else {
             table.push([container.name.red,
                         container.type.red,
                         'stopped'.red,
@@ -115,14 +113,12 @@ module.exports = function () {
             env += '  ' + key + '=' + command.detail.environment[key] + '\n'
           })
           console.log('environment:\n' + env)
-        }
-        else {
+        } else {
           console.log('not managed or unknown process')
         }
         cb()
       })
-    }
-    else {
+    } else {
       cb('process not specified')
     }
   }
@@ -131,11 +127,9 @@ module.exports = function () {
   var stopProcess = function (args, system, cb) {
     if (args.length === 1 && args[0] === 'exit') {
       stopSystem(system)
-    }
-    else if (args.length === 1 || args[1][0] === 'all') {
+    } else if (args.length === 1 || args[1][0] === 'all') {
       _runner.stopAll(system, cb)
-    }
-    else {
+    } else {
       for (var i = 0; i < args[1].length; i++) {
         if (_.includes(procList, args[1][i])) {
           _runner.stop(system, args[1][i], 1, cb)
@@ -148,8 +142,7 @@ module.exports = function () {
   var startProcess = function (args, system, cb) {
     if (args.length === 1 || args[1][0] === 'all') {
       _runner.startAll(system, args[2] || 1, cb)
-    }
-    else {
+    } else {
       for (var i = 0; i < args[1].length; i++) {
         _runner.start(system, args[1][i], 1, cb)
       }
@@ -161,13 +154,11 @@ module.exports = function () {
     if (args.length === 2) {
       if (!_runner.isProcessRunning(args[1])) {
         _runner.debug(system, args[1], cb)
-      }
-      else {
+      } else {
         console.log('process already running - terminate to debug')
         cb()
       }
-    }
-    else {
+    } else {
       cb()
     }
   }
@@ -175,8 +166,7 @@ module.exports = function () {
   var profileProcess = function (args, system, cb) {
     if (!_runner.isProcessRunning(args.process)) {
       _runner.profile(system, args, cb)
-    }
-    else {
+    } else {
       console.log('process already running - terminate to profile')
       cb()
     }
@@ -206,8 +196,7 @@ module.exports = function () {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
       _runner.watchAll(system)
-    }
-    else if (args.length >= 2) {
+    } else if (args.length >= 2) {
       err = _runner.watch(system, args[1])
     }
     cb(err)
@@ -218,8 +207,7 @@ module.exports = function () {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
       _runner.unwatchAll(system)
-    }
-    else if (args.length >= 2) {
+    } else if (args.length >= 2) {
       err = _runner.unwatch(system, args[1])
     }
     cb(err)
@@ -230,8 +218,7 @@ module.exports = function () {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
       _runner.tailAll(system)
-    }
-    else if (args.length >= 2) {
+    } else if (args.length >= 2) {
       err = _runner.tail(system, args[1], args[2] || 0)
     }
     cb(err)
@@ -242,8 +229,7 @@ module.exports = function () {
     var err = null
     if (args.length === 1 || args[1] === 'all') {
       _runner.untailAll(system)
-    }
-    else if (args.length >= 2) {
+    } else if (args.length >= 2) {
       err = _runner.untail(system, args[1])
     }
     cb(err)
@@ -254,12 +240,10 @@ module.exports = function () {
     if (args[1]) {
       if (args[1].length === 1 || args[1][1] === 'all') {
         _runner.grepAll(system, _config, args[1], cb)
-      }
-      else if (args[1].length > 1) {
+      } else if (args[1].length > 1) {
         _runner.grep(args[1][1], _config, args[1][0], cb)
       }
-    }
-    else {
+    } else {
       cb()
     }
   }
@@ -369,8 +353,7 @@ module.exports = function () {
             }
 
             action(arr, system, cb)
-          }
-          else {
+          } else {
             if (opt !== undefined) {
               arr.push(opt)
             }
@@ -382,8 +365,7 @@ module.exports = function () {
       if (command === 'profile') {
         profileOptions(cmd)
       }
-    }
-    else if (command === 'exit') {
+    } else if (command === 'exit') {
       vorpal
         .command(command + type)
         .alias('quit')
@@ -399,8 +381,7 @@ module.exports = function () {
 
           action(arr, system, cb)
         })
-    }
-    else {
+    } else {
       cmd = vorpal
         .command(command)
         .description(description)
@@ -427,20 +408,15 @@ module.exports = function () {
       if (com.command === 'watch' || com.command === 'unwatch' ||
         com.command === 'info' || com.command === 'tail' || com.command === 'untail') {
         inputStructure(com.command, '[process]', com.description, com.action, system)
-      }
-      else if (com.command === 'debug') {
+      } else if (com.command === 'debug') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
-      }
-      else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit' || com.command === 'grep') {
+      } else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit' || com.command === 'grep') {
         inputStructure(com.command, '[process...]', com.description, com.action, system)
-      }
-      else if (com.command === 'profile') {
+      } else if (com.command === 'profile') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
-      }
-      else if (com.command === 'send') {
+      } else if (com.command === 'send') {
         inputStructure(com.command, '<process> <message>', com.description, com.action, system)
-      }
-      else {
+      } else {
         inputStructure(com.command, null, com.description, com.action, system)
       }
     })
