@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+
+  reader:
+    container_name: reader
+    build: ../services/reader/
+    ports:
+      - 4000:4000
+
+  writer:
+    container_name: writer
+    build: ../services/writer/
+    ports:
+      - 5000:5000

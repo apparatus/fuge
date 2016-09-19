@@ -1,0 +1,9 @@
+{
+  "name": "writer",
+  "version": "1.0.0",
+  "private": "true",
+  "main": "start.js",
+  "dependencies": {
+    "hapi": "^15.0.3"
+  }
+}
