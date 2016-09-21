@@ -52,7 +52,7 @@ module.exports = function () {
   }
 
 
-  var generateRepo = function (name, cb) {
+  var cloneRepo = function (name, cb) {
     runner = require('fuge-runner')()
     runner.generate(name, function (err) {
       cb(err)
@@ -64,6 +64,6 @@ module.exports = function () {
     previewSystem: previewSystem,
     buildSystem: buildSystem,
     pullSystem: pullSystem,
-    generateRepo: generateRepo
+    cloneRepo: cloneRepo
   }
 }
