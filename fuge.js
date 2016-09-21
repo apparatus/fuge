@@ -53,11 +53,11 @@ var pullSystem = function (args) {
 }
 
 
-var generateRepo = function (args) {
+var cloneRepo = function (args) {
   console.log('pulling...')
 
   if (args && args.length > 0) {
-    return runner.generateRepo(args[0], function (err) {
+    return runner.cloneRepo(args[0], function (err) {
       if (err) { return console.error(err) }
     })
   }
@@ -96,7 +96,7 @@ var showHelp = function () {
   console.log('')
   console.log('fuge build                      build a system by executing the RUN commands in each services Dockerfile')
   console.log('fuge pull <compose-file>        update a system by attempting a git pull against each service')
-  console.log('fuge generate <Github repo>     clone a Github repo, supports all valid repo name formats')
+  console.log('fuge clone <Github repo>        clone a Github repo, supports all valid repo name formats')
   console.log('fuge run <compose-file>         run a system')
   console.log('fuge preview <compose-file>     preview a run command for a system')
   console.log('fuge shell <compose-file>       start an interactive shell for a system')
@@ -107,7 +107,8 @@ var showHelp = function () {
 
 program.register('build', buildSystem)
 program.register('pull', pullSystem)
-program.register('generate', generateRepo)
+program.register('clone', cloneRepo)
+program.register('generate', cloneRepo)
 program.register('run', runSystem)
 program.register('preview', previewSystem)
 program.register('shell', runShell)
