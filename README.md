@@ -118,7 +118,7 @@ The current supported commands are:
 
 * `fuge build` - build a system by executing the RUN commands in each services Dockerfile
 * `fuge pull <compose-file>` - update a system by attempting a git pull against each service
-* `fuge clone <Github repo>` - clone a Github repo, supports all valid repo name formats
+* `fuge clone <Github repo>` - clone a Github repo, supports all valid repo name formats. Main use case `owner/repo`. Example: `fuge clone apparatus/fuge`
 * `fuge generate <Github repo>` - alias for `fuge clone`. Will be deprecated.
 * `fuge run <compose-file>` - run a system
 * `fuge preview <compose-file>` - preview a run command for a system
