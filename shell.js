@@ -140,10 +140,12 @@ module.exports = function () {
 
 
   var startProcess = function (args, system, cb) {
+    console.log('START')
     if (args.length === 1 || args[1][0] === 'all') {
       _runner.startAll(system, args[2] || 1, cb)
     } else {
       for (var i = 0; i < args[1].length; i++) {
+        console.log('-->' + args[1][i])
         _runner.start(system, args[1][i], 1, cb)
       }
     }
@@ -394,7 +396,7 @@ module.exports = function () {
 
 
   var repl = function (system) {
-    vorpal.delimiter('?'.green + ' fuge>'.bold).show()
+    vorpal.delimiter(' fuge>'.bold).show()
 
     var exit = vorpal.find('exit') // override built in exit command
     if (exit) {
@@ -423,44 +425,33 @@ module.exports = function () {
   }
 
 
-  var run = function (system, config) {
-    _config = config
-    _runner = require('fuge-runner')(_config)
-    _proxy = require('fuge-proxy')(_config)
+  var run = function (system) {
+    _runner = require('fuge-runner')()
+    _proxy = require('fuge-proxy')()
 
     CleanupHandler(function () {
       stopSystem(system)
     })
 
-    console.log('starting proxy...')
-    _proxy.startAll(system, function (err) {
-      if (err) { console.log(err); process.exit(0) }
-      console.log('starting shell..')
-      repl(system)
-    })
+    console.log('starting shell..')
+    repl(system)
   }
 
 
-  var runSingleCommand = function (system, config, command) {
-    _config = config
-    _runner = require('fuge-runner')(_config)
-    _proxy = require('fuge-proxy')(_config)
+  var runSingleCommand = function (system, command) {
+    _runner = require('fuge-runner')()
+    _proxy = require('fuge-proxy')()
 
     CleanupHandler(function () {
       stopSystem(system)
     })
 
-    console.log('starting proxy...')
-    _proxy.startAll(system, function (err) {
-      if (err) { console.error(err); process.exit(0) }
-
-      var commandName = command.split(' ')[0]
-      var commandArgs = command.split(' ').slice(1)
-      var cmd = _.find(commands, { command: commandName })
-      if (!cmd) { console.error('Unknown command:', cmd); process.exit(0) }
-      cmd.action([commandName, commandArgs], system, function (err) {
-        if (err) { console.error(err) }
-      })
+    var commandName = command.split(' ')[0]
+    var commandArgs = command.split(' ').slice(1)
+    var cmd = _.find(commands, { command: commandName })
+    if (!cmd) { console.error('Unknown command:', cmd); process.exit(0) }
+    cmd.action([commandName, commandArgs], system, function (err) {
+      if (err) { console.error(err) }
     })
   }
 

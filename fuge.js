@@ -75,9 +75,9 @@ var runSystem = function (args) {
 
 var runShell = function (args) {
   console.log('compiling...')
-  util.compile(args, function (err, system, config) {
+  util.compile(args, function (err, system) {
     if (err) { return console.error(err) }
-    shell.run(system, config)
+    shell.run(system)
   })
 }
 
