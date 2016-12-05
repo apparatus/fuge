@@ -30,7 +30,6 @@ require('colors')
 module.exports = function () {
   var _config
   var _runner
-  var _proxy
   var vorpal = new Vorpal()
 
   var tableChars = {
@@ -67,27 +66,25 @@ module.exports = function () {
     var counts = _.countBy(_.keys(procs), function (key) { return procs[key].identifier })
 
     _.each(system.topology.containers, function (container) {
-      if (!(container.name === '__proxy' || container.type === 'blank-container')) {
-        if (container.type === 'docker' && _config.runDocker === false) {
-          table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', ''])
+      if (container.type === 'docker' && _config.runDocker === false) {
+        table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', ''])
+      } else {
+        var procKey = _.find(_.keys(procs), function (key) { return procs[key].identifier === container.name })
+        if (procKey) {
+          var proc = procs[procKey]
+          table.push([container.name.green,
+                      container.type.green,
+                      container.profiling ? 'profiling'.green : 'running'.green,
+                      proc.monitor ? 'yes'.green : 'no'.red,
+                      proc.tail ? 'yes'.green : 'no'.red,
+                      counts[container.name] ? ('' + counts[container.name]).green : '0'.red])
         } else {
-          var procKey = _.find(_.keys(procs), function (key) { return procs[key].identifier === container.name })
-          if (procKey) {
-            var proc = procs[procKey]
-            table.push([container.name.green,
-                        container.type.green,
-                        container.profiling ? 'profiling'.green : 'running'.green,
-                        proc.monitor ? 'yes'.green : 'no'.red,
-                        proc.tail ? 'yes'.green : 'no'.red,
-                        counts[container.name] ? ('' + counts[container.name]).green : '0'.red])
-          } else {
-            table.push([container.name.red,
-                        container.type.red,
-                        'stopped'.red,
-                        container.monitor ? 'yes'.green : 'no'.red,
-                        container.tail ? 'yes'.green : 'no'.red,
-                        '0'.red])
-          }
+          table.push([container.name.red,
+                      container.type.red,
+                      'stopped'.red,
+                      container.monitor ? 'yes'.green : 'no'.red,
+                      container.tail ? 'yes'.green : 'no'.red,
+                      '0'.red])
         }
       }
     })
@@ -95,10 +92,6 @@ module.exports = function () {
     cb()
   }
 
-
-  var proxy = function (args, system, cb) {
-    _proxy.previewAll(system, cb)
-  }
 
 
   var showInfo = function (args, system, cb) {
@@ -264,11 +257,6 @@ module.exports = function () {
       description: 'list managed processes and containers'
     },
     {
-      command: 'proxy',
-      action: proxy,
-      description: 'list proxy status and port forwarding'
-    },
-    {
       command: 'info',
       action: showInfo,
       description: 'list environment block injected into each process'
@@ -427,7 +415,6 @@ module.exports = function () {
 
   var run = function (system) {
     _runner = require('fuge-runner')()
-    _proxy = require('fuge-proxy')()
 
     CleanupHandler(function () {
       stopSystem(system)
@@ -440,7 +427,6 @@ module.exports = function () {
 
   var runSingleCommand = function (system, command) {
     _runner = require('fuge-runner')()
-    _proxy = require('fuge-proxy')()
 
     CleanupHandler(function () {
       stopSystem(system)
