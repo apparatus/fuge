@@ -61,9 +61,9 @@ module.exports = function () {
 
   var psList = function (args, system, cb) {
     var table = new CliTable({chars: tableChars, style: tableStyle,
-                              head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white, 'count'.white], colWidths: [30, 15, 15, 15, 15, 5]})
+                              head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15]})
     var procs = _runner.processes()
-    var counts = _.countBy(_.keys(procs), function (key) { return procs[key].identifier })
+//    var counts = _.countBy(_.keys(procs), function (key) { return procs[key].identifier })
 
     _.each(system.topology.containers, function (container) {
       if (container.type === 'docker' && _config.runDocker === false) {
@@ -76,15 +76,15 @@ module.exports = function () {
                       container.type.green,
                       container.profiling ? 'profiling'.green : 'running'.green,
                       proc.monitor ? 'yes'.green : 'no'.red,
-                      proc.tail ? 'yes'.green : 'no'.red,
-                      counts[container.name] ? ('' + counts[container.name]).green : '0'.red])
+                      proc.tail ? 'yes'.green : 'no'.red])
+//                      counts[container.name] ? ('' + counts[container.name]).green : '0'.red])
         } else {
           table.push([container.name.red,
                       container.type.red,
                       'stopped'.red,
                       container.monitor ? 'yes'.green : 'no'.red,
-                      container.tail ? 'yes'.green : 'no'.red,
-                      '0'.red])
+                      container.tail ? 'yes'.green : 'no'.red])
+                     //  '0'.red])
         }
       }
     })
@@ -255,12 +255,12 @@ module.exports = function () {
     {
       command: 'stop',
       action: stopProcess,
-      description: 'stop [count] process instances and watchers'
+      description: 'stop process instance and watcher'
     },
     {
       command: 'start',
       action: startProcess,
-      description: 'start [count] processes with watch'
+      description: 'start processe with watch'
     },
     {
       command: 'debug',
@@ -412,7 +412,6 @@ module.exports = function () {
 
   var run = function (system) {
     _runner = require('fuge-runner')()
-
 
     console.log('starting shell..')
     repl(system)
