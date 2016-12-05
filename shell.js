@@ -124,9 +124,7 @@ module.exports = function () {
       _runner.stopAll(system, cb)
     } else {
       for (var i = 0; i < args[1].length; i++) {
-        if (_.includes(procList, args[1][i])) {
-          _runner.stop(system, args[1][i], 1, cb)
-        }
+        _runner.stop(system, args[1][i], 1, cb)
       }
     }
   }
@@ -137,7 +135,6 @@ module.exports = function () {
       _runner.startAll(system, args[2] || 1, cb)
     } else {
       for (var i = 0; i < args[1].length; i++) {
-        console.log('-->' + args[1][i])
         _runner.start(system, args[1][i], 1, cb)
       }
     }
@@ -233,9 +230,9 @@ module.exports = function () {
   var grepLogs = function (args, system, cb) {
     if (args[1]) {
       if (args[1].length === 1 || args[1][1] === 'all') {
-        _runner.grepAll(system, _config, args[1], cb)
+        _runner.grepAll(system, args[1], cb)
       } else if (args[1].length > 1) {
-        _runner.grep(args[1][1], _config, args[1][0], cb)
+        _runner.grep(system, args[1][1], args[1][0], cb)
       }
     } else {
       cb()
@@ -386,7 +383,11 @@ module.exports = function () {
       stopSystem(system)
     })
 
-    require('death')({uncaughtException: true})(function () {
+    require('death')({uncaughtException: true})(function (signal, err) {
+      console.log('ERROR: ')
+      console.log(signal)
+      console.log(err)
+      console.log('cleanup:')
       stopSystem(system)
     })
 
