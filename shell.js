@@ -16,7 +16,6 @@
 
 var _ = require('lodash')
 var Vorpal = require('vorpal')
-var CleanupHandler = require('death')
 var CliTable = require('cli-table')
 var procList = []
 require('colors')
@@ -43,6 +42,7 @@ module.exports = function () {
     'padding-left': 0,
     'padding-right': 0
   }
+
 
 
   var stopSystem = function (system) {
@@ -375,14 +375,21 @@ module.exports = function () {
   var repl = function (system) {
     vorpal.delimiter(' fuge>'.bold).show()
 
-    var exit = vorpal.find('exit') // override built in exit command
+    var exit = vorpal.find('exit')
     if (exit) {
       exit.remove()
     }
 
-    autoComp(system) // add all process to autocomplete
+    autoComp(system)
 
-    // creates a vorpal instance for each object in commands
+    vorpal.sigint(function () {
+      stopSystem(system)
+    })
+
+    require('death')({uncaughtException: true})(function () {
+      stopSystem(system)
+    })
+
     commands.forEach(function (com) {
       if (com.command === 'watch' || com.command === 'unwatch' ||
         com.command === 'info' || com.command === 'tail' || com.command === 'untail') {
@@ -405,9 +412,6 @@ module.exports = function () {
   var run = function (system) {
     _runner = require('fuge-runner')()
 
-    CleanupHandler(function () {
-      stopSystem(system)
-    })
 
     console.log('starting shell..')
     repl(system)
@@ -417,7 +421,7 @@ module.exports = function () {
   var runSingleCommand = function (system, command) {
     _runner = require('fuge-runner')()
 
-    CleanupHandler(function () {
+    require('death')({uncaughtException: true})(function () {
       stopSystem(system)
     })
 
@@ -431,8 +435,10 @@ module.exports = function () {
   }
 
 
+
   return {
     run: run,
     runSingleCommand: runSingleCommand
   }
 }
+
