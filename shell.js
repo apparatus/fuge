@@ -243,11 +243,6 @@ module.exports = function () {
   }
 
 
-  var sendMessage = function (args, system, cb) {
-    console.error('not implemented')
-    cb()
-  }
-
 
   var commands = [
     {
@@ -304,11 +299,6 @@ module.exports = function () {
       command: 'grep',
       action: grepLogs,
       description: 'searches logs for specific process or all logs'
-    },
-    {
-      command: 'send',
-      action: sendMessage,
-      description: 'sends a message to a specific process'
     },
     {
       command: 'exit',
