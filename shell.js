@@ -133,7 +133,6 @@ module.exports = function () {
 
 
   var startProcess = function (args, system, cb) {
-    console.log('START')
     if (args.length === 1 || args[1][0] === 'all') {
       _runner.startAll(system, args[2] || 1, cb)
     } else {
