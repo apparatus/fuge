@@ -63,7 +63,6 @@ module.exports = function () {
     var table = new CliTable({chars: tableChars, style: tableStyle,
                               head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15]})
     var procs = _runner.processes()
-//    var counts = _.countBy(_.keys(procs), function (key) { return procs[key].identifier })
 
     _.each(system.topology.containers, function (container) {
       if (container.type === 'docker' && _config.runDocker === false) {
@@ -77,7 +76,6 @@ module.exports = function () {
                       container.profiling ? 'profiling'.green : 'running'.green,
                       proc.monitor ? 'yes'.green : 'no'.red,
                       proc.tail ? 'yes'.green : 'no'.red])
-//                      counts[container.name] ? ('' + counts[container.name]).green : '0'.red])
         } else {
           table.push([container.name.red,
                       container.type.red,

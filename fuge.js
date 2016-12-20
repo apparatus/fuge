@@ -66,9 +66,9 @@ var cloneRepo = function (args) {
 
 var runSystem = function (args) {
   console.log('compiling...')
-  util.compile(args, function (err, system, config) {
+  util.compile(args, function (err, system) {
     if (err) { return console.error(err) }
-    shell.runSingleCommand(system, config, 'start all')
+    shell.runSingleCommand(system, 'start all')
   })
 }
 
