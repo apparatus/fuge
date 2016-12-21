@@ -18,6 +18,7 @@ var _ = require('lodash')
 var Vorpal = require('vorpal')
 var CliTable = require('cli-table')
 var procList = []
+var FugeDns = require('fuge-dns')
 require('colors')
 
 
@@ -29,6 +30,7 @@ require('colors')
 module.exports = function () {
   var _config
   var _runner
+  var _dns = null
   var vorpal = new Vorpal()
 
   var tableChars = {
@@ -47,6 +49,7 @@ module.exports = function () {
 
   var stopSystem = function (system) {
     _runner.stopAll(system, function () {
+      if (_dns) { _dns.stop() }
       process.exit(0)
     })
   }
@@ -86,6 +89,13 @@ module.exports = function () {
         }
       }
     })
+    if (_dns) {
+      table.push(['dns'.green,
+                  'internal'.green,
+                  'running'.green,
+                  'no'.red,
+                  'no'.red])
+    }
     console.log(table.toString())
     cb()
   }
@@ -239,6 +249,32 @@ module.exports = function () {
 
 
 
+  var printZone = function (args, system, cb) {
+    var table = new CliTable({chars: tableChars, style: tableStyle,
+                              head: ['type'.white, 'domain'.white, 'address'.white, 'port'.white], colWidths: [10, 40, 20, 10]})
+
+    var list = _dns.listRecords()
+    _.each(list, function (entry) {
+      if (entry.record._type === 'A') {
+        table.push(['A'.white,
+                    entry.domain.white,
+                    entry.record.target.white,
+                    '-'.white])
+      }
+      if (entry.record._type === 'SRV') {
+        table.push(['SRV'.white,
+                    entry.domain.white,
+                    entry.record.target.white,
+                    entry.record.port.white])
+      }
+    })
+    console.log(table.toString())
+    cb()
+
+  }
+
+
+
   var commands = [
     {
       command: 'ps',
@@ -294,6 +330,11 @@ module.exports = function () {
       command: 'grep',
       action: grepLogs,
       description: 'searches logs for specific process or all logs'
+    },
+    {
+      command: 'zone',
+      action: printZone,
+      description: 'displays dns zone information if enabled'
     },
     {
       command: 'exit',
@@ -411,8 +452,19 @@ module.exports = function () {
   var run = function (system) {
     _runner = require('fuge-runner')()
 
-    console.log('starting shell..')
-    repl(system)
+    if (system.global.dns_enabled) {
+      console.log('starting fuge dns [' + system.global.dns_host + ':' + system.global.dns_port + ']..')
+      _dns = FugeDns({host: system.global.dns_host, port: system.global.dns_port})
+      _dns.addZone(system.global.dns)
+      _dns.start(function () {
+        console.log('ok')
+        console.log('starting shell..')
+        repl(system)
+      })
+    } else {
+      console.log('starting shell..')
+      repl(system)
+    }
   }
 
 
