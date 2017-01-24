@@ -251,7 +251,7 @@ module.exports = function () {
 
   var printZone = function (args, system, cb) {
     var table = new CliTable({chars: tableChars, style: tableStyle,
-                              head: ['type'.white, 'domain'.white, 'address'.white, 'port'.white], colWidths: [10, 40, 20, 10]})
+                              head: ['type'.white, 'domain'.white, 'address'.white, 'port'.white], colWidths: [10, 60, 60, 10]})
 
     var list = _dns.listRecords()
     _.each(list, function (entry) {
