@@ -48,9 +48,7 @@ Docker will build a set of containers and start them up for you using the docker
 __NOTE:__ currently fuge only supports the docker-compose v1 format.
 
 #### Proxy
-In addition to running Docker containers, Fuge will proxy connections to the Docker virtual machine on a mac and windows environment. Running the proxy command will show you how fuge is proxying connections to the Docker containers running as part of your system.
-
-When using Docker on linux or via Docker for Mac/Win ensure `proxy` is set to `none`. Proxy is only required when you are using docker-toolbox or specifically working with proxied connections.
+Proxy is now deprecated as native docker has negated the need for this functionality.
 
 ### Running Infrastructure
 Let's say that we want one of our services to connect a redis server. We could go ahead and install redis to our development system. Another approach however is to use Docker. If you have Docker installed then try the following:
@@ -84,11 +82,6 @@ module.exports = {
 
   // run docker containers. If false containers with image attribute will not be run
   runDocker: true,
-
-  // proxy settings - one of the options: docker | process | all | none
-  // if you are running docker natively (docker for mac/win/linux) proxy
-  // must be set to 'none'. Set to docker to use with docker-toolbox.
-  proxy: 'none',
 
   // if true tail running process to the shell by default
   tail: false,
@@ -137,7 +130,6 @@ The fuge shell supports the following commands:
 
 * `help` - display a list of supported commands
 * `ps` - list status of managed processes and containers
-* `proxy` - list proxy and port forwarding status
 * `info [process name]` - show information on a specific process
 * `stop [process]` - stop a process and any associated watcher
 * `stop all` - stop all processes and watchers

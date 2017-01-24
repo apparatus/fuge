@@ -14,65 +14,34 @@
 
 'use strict'
 
-var Fs = require('fs')
-var Path = require('path')
-var _ = require('lodash')
-var xeno = require('xenotype')()
-
+var fs = require('fs')
+var path = require('path')
+var fcfg = require('fuge-config')()
 
 module.exports = function () {
-  var applyOverrides = function (system, config) {
-    _.each(_.keys(system.topology.containers), function (key) {
-      var container = system.topology.containers[key]
-      if (config && config.overrides && config.overrides[container.name]) {
-        if (config.overrides[container.name].run) {
-          console.log('overriding run command for: ' + container.name + ' to: ' + config.overrides[container.name].run)
-          container.specific.execute.exec = config.overrides[container.name].run
-        }
-
-        if (config.overrides[container.name].build) {
-          console.log('overriding build command for: ' + container.name + ' to: ' + config.overrides[container.name].build)
-          container.specific.buildScript = config.overrides[container.name].build
-        }
-
-        if (config.overrides[container.name].delay) {
-          console.log('adding delay of ' + config.overrides[container.name].delay + 'ms for: ' + container.name)
-          container.specific.execute.delay = config.overrides[container.name].delay
-        }
-      }
-
-      if (config && config.tail) {
-        container.tail = true
-      }
-
-      if (config && config.monitor) {
-        container.monitor = true
-      }
-    })
-  }
 
   var compile = function (args, cb) {
-    var yamlPath = args[0] || process.cwd() + '/docker-compose.yml'
-    var configPath = (Path.dirname(args[0]) || process.cwd()) + '/fuge-config.js'
-    var config = {}
+    var yamlPath = path.resolve(args[0] || path.join(process.cwd(), 'fuge.yml'))
+    var logPath
 
-    if (Fs.existsSync(configPath)) {
-      config = require(process.cwd() + '/' + configPath)
+    if (args[0]) {
+      logPath = path.resolve(path.join(path.dirname(args[0]), 'log'))
+    } else {
+      logPath = path.resolve(path.join(process.cwd(), 'log'))
     }
 
-    if (!Fs.existsSync(yamlPath)) {
+    if (!fs.existsSync(yamlPath)) {
       return console.log('path not found: ' + yamlPath)
     }
 
-    config.logPath = (Path.dirname(args[0]) || process.cwd()) + '/log'
-    if (!Fs.existsSync(config.logPath)) {
-      Fs.mkdirSync(config.logPath)
+    if (!fs.existsSync(logPath)) {
+      fs.mkdirSync(logPath)
     }
 
-    xeno.compile(yamlPath, function (err, system) {
+    fcfg.load(yamlPath, function (err, system) {
       if (err) { return cb(err) }
-      applyOverrides(system, config)
-      cb(err, system, config)
+      system.global.log_path = logPath
+      cb(err, system)
     })
   }
 
@@ -80,3 +49,4 @@ module.exports = function () {
     compile: compile
   }
 }
+
