@@ -14,7 +14,7 @@
 
 'use strict'
 
-var Fs = require('fs')
+var fs = require('fs')
 var path = require('path')
 var fcfg = require('fuge-config')()
 
@@ -30,12 +30,12 @@ module.exports = function () {
       logPath = path.resolve(path.join(process.cwd(), 'log'))
     }
 
-    if (!Fs.existsSync(yamlPath)) {
+    if (!fs.existsSync(yamlPath)) {
       return console.log('path not found: ' + yamlPath)
     }
 
-    if (!Fs.existsSync(logPath)) {
-      Fs.mkdirSync(logPath)
+    if (!fs.existsSync(logPath)) {
+      fs.mkdirSync(logPath)
     }
 
     fcfg.load(yamlPath, function (err, system) {

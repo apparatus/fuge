@@ -30,9 +30,9 @@ npm install -g fuge
 In order to run your system via fuge, you need the following key files,
 
 * A `docker-compose.yaml` file that serves as the main configuration reference for the system
-* A `fuge-config.json` file that contains fuge specific settings and overrides not supported by docker-compose
+* A `fuge-config.js` file that contains fuge specific settings and overrides not supported by docker-compose
 
-Each service in the system should have a Dockerfile or an entry in the overrides section of `fuge-config.json`. Once added
+Each service in the system should have a Dockerfile or an entry in the overrides section of `fuge-config.js`. Once added
 follow the commands below to configure, start, stop, and build your system.
 
 ### Docker
