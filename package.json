@@ -28,8 +28,7 @@
     "death": "^1.0.0",
     "fuge-runner": "^0.10.0",
     "lodash": "^4.5.0",
-    "vorpal": "^1.10.8",
-    "xenotype": "^0.4.1"
+    "vorpal": "^1.10.8"
   },
   "repository": {
     "type": "git",

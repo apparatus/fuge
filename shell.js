@@ -16,7 +16,6 @@
 
 var _ = require('lodash')
 var Vorpal = require('vorpal')
-var CleanupHandler = require('death')
 var CliTable = require('cli-table')
 var procList = []
 require('colors')
@@ -45,6 +44,7 @@ module.exports = function () {
   }
 
 
+
   var stopSystem = function (system) {
     _runner.stopAll(system, function () {
       process.exit(0)
@@ -61,9 +61,8 @@ module.exports = function () {
 
   var psList = function (args, system, cb) {
     var table = new CliTable({chars: tableChars, style: tableStyle,
-                              head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white, 'count'.white], colWidths: [30, 15, 15, 15, 15, 5]})
+                              head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15]})
     var procs = _runner.processes()
-    var counts = _.countBy(_.keys(procs), function (key) { return procs[key].identifier })
 
     _.each(system.topology.containers, function (container) {
       if (container.type === 'docker' && _config.runDocker === false) {
@@ -76,15 +75,14 @@ module.exports = function () {
                       container.type.green,
                       container.profiling ? 'profiling'.green : 'running'.green,
                       proc.monitor ? 'yes'.green : 'no'.red,
-                      proc.tail ? 'yes'.green : 'no'.red,
-                      counts[container.name] ? ('' + counts[container.name]).green : '0'.red])
+                      proc.tail ? 'yes'.green : 'no'.red])
         } else {
           table.push([container.name.red,
                       container.type.red,
                       'stopped'.red,
                       container.monitor ? 'yes'.green : 'no'.red,
-                      container.tail ? 'yes'.green : 'no'.red,
-                      '0'.red])
+                      container.tail ? 'yes'.green : 'no'.red])
+                     //  '0'.red])
         }
       }
     })
@@ -124,21 +122,17 @@ module.exports = function () {
       _runner.stopAll(system, cb)
     } else {
       for (var i = 0; i < args[1].length; i++) {
-        if (_.includes(procList, args[1][i])) {
-          _runner.stop(system, args[1][i], 1, cb)
-        }
+        _runner.stop(system, args[1][i], 1, cb)
       }
     }
   }
 
 
   var startProcess = function (args, system, cb) {
-    console.log('START')
     if (args.length === 1 || args[1][0] === 'all') {
       _runner.startAll(system, args[2] || 1, cb)
     } else {
       for (var i = 0; i < args[1].length; i++) {
-        console.log('-->' + args[1][i])
         _runner.start(system, args[1][i], 1, cb)
       }
     }
@@ -234,20 +228,15 @@ module.exports = function () {
   var grepLogs = function (args, system, cb) {
     if (args[1]) {
       if (args[1].length === 1 || args[1][1] === 'all') {
-        _runner.grepAll(system, _config, args[1], cb)
+        _runner.grepAll(system, args[1], cb)
       } else if (args[1].length > 1) {
-        _runner.grep(args[1][1], _config, args[1][0], cb)
+        _runner.grep(system, args[1][1], args[1][0], cb)
       }
     } else {
       cb()
     }
   }
 
-
-  var sendMessage = function (args, system, cb) {
-    console.error('not implemented')
-    cb()
-  }
 
 
   var commands = [
@@ -264,12 +253,12 @@ module.exports = function () {
     {
       command: 'stop',
       action: stopProcess,
-      description: 'stop [count] process instances and watchers'
+      description: 'stop process instance and watcher'
     },
     {
       command: 'start',
       action: startProcess,
-      description: 'start [count] processes with watch'
+      description: 'start processe with watch'
     },
     {
       command: 'debug',
@@ -305,11 +294,6 @@ module.exports = function () {
       command: 'grep',
       action: grepLogs,
       description: 'searches logs for specific process or all logs'
-    },
-    {
-      command: 'send',
-      action: sendMessage,
-      description: 'sends a message to a specific process'
     },
     {
       command: 'exit',
@@ -386,14 +370,25 @@ module.exports = function () {
   var repl = function (system) {
     vorpal.delimiter(' fuge>'.bold).show()
 
-    var exit = vorpal.find('exit') // override built in exit command
+    var exit = vorpal.find('exit')
     if (exit) {
       exit.remove()
     }
 
-    autoComp(system) // add all process to autocomplete
+    autoComp(system)
 
-    // creates a vorpal instance for each object in commands
+    vorpal.sigint(function () {
+      stopSystem(system)
+    })
+
+    require('death')({uncaughtException: true})(function (signal, err) {
+      console.log('ERROR: ')
+      console.log(signal)
+      console.log(err)
+      console.log('cleanup:')
+      stopSystem(system)
+    })
+
     commands.forEach(function (com) {
       if (com.command === 'watch' || com.command === 'unwatch' ||
         com.command === 'info' || com.command === 'tail' || com.command === 'untail') {
@@ -416,10 +411,6 @@ module.exports = function () {
   var run = function (system) {
     _runner = require('fuge-runner')()
 
-    CleanupHandler(function () {
-      stopSystem(system)
-    })
-
     console.log('starting shell..')
     repl(system)
   }
@@ -428,7 +419,7 @@ module.exports = function () {
   var runSingleCommand = function (system, command) {
     _runner = require('fuge-runner')()
 
-    CleanupHandler(function () {
+    require('death')({uncaughtException: true})(function () {
       stopSystem(system)
     })
 
@@ -442,8 +433,10 @@ module.exports = function () {
   }
 
 
+
   return {
     run: run,
     runSingleCommand: runSingleCommand
   }
 }
+
