@@ -28,7 +28,6 @@ require('colors')
  * need a command history
  */
 module.exports = function () {
-  var _config
   var _runner
   var _dns = null
   var vorpal = new Vorpal()
@@ -68,7 +67,7 @@ module.exports = function () {
     var procs = _runner.processes()
 
     _.each(system.topology.containers, function (container) {
-      if (container.type === 'docker' && _config.runDocker === false) {
+      if (container.type === 'container' && system.global.run_containers === false) {
         table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', ''])
       } else {
         var procKey = _.find(_.keys(procs), function (key) { return procs[key].identifier === container.name })
