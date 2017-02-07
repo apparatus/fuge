@@ -84,7 +84,6 @@ module.exports = function () {
                       'stopped'.red,
                       container.monitor ? 'yes'.green : 'no'.red,
                       container.tail ? 'yes'.green : 'no'.red])
-                     //  '0'.red])
         }
       }
     })
@@ -102,26 +101,17 @@ module.exports = function () {
 
 
   var showInfo = function (args, system, cb) {
-    if (args.length === 2) {
-      _runner.preview(system, args[1], function (err, command) {
-        if (err) { cb(err) }
-        if (command && command.detail) {
-          var env = ''
-          console.log('command: ' + command.detail.cmd)
-          console.log('directory: ' + command.detail.cwd)
-          _.each(_.keys(command.detail.environment), function (key) {
-            env += '  ' + key + '=' + command.detail.environment[key] + '\n'
-          })
-          console.log('environment:\n' + env)
-        } else {
-          console.log('not managed or unknown process')
-        }
-        cb()
-      })
+    if (args[1]) {
+      if (args[1].length === 1) {
+        _runner.preview(system, args[1][0], 'short', cb)
+      } else if (args[1].length === 2 && args[1][1] === 'full') {
+        _runner.preview(system, args[1][0], 'full', cb)
+      }
     } else {
-      cb('process not specified')
+      cb()
     }
   }
+
 
 
   var stopProcess = function (args, system, cb) {
@@ -236,16 +226,54 @@ module.exports = function () {
 
   var grepLogs = function (args, system, cb) {
     if (args[1]) {
-      if (args[1].length === 1 || args[1][1] === 'all') {
-        _runner.grepAll(system, args[1], cb)
-      } else if (args[1].length > 1) {
-        _runner.grep(system, args[1][1], args[1][0], cb)
+      if (args[1].length === 1) {
+        _runner.grepAll(system, args[1][0], cb)
+      } else {
+        if (args[1].length === 2) {
+          if (args[1][0] === 'all') {
+            _runner.grepAll(system, args[1][1], cb)
+          } else {
+            _runner.grep(system, args[1][0], args[1][1], cb)
+          }
+        }
       }
     } else {
       cb()
     }
   }
 
+
+  var pullRepositories = function (args, system, cb) {
+    var err = null
+    if (args.length === 1 || args[1] === 'all') {
+      _runner.pullAll(system, cb)
+    } else if (args.length >= 2) {
+      err = _runner.pull(system, args[1], cb)
+    }
+    cb(err)
+  }
+
+
+  var testRepositories = function (args, system, cb) {
+    var err = null
+    if (args.length === 1 || args[1] === 'all') {
+      _runner.testAll(system, cb)
+    } else if (args.length >= 2) {
+      err = _runner.test(system, args[1], cb)
+    }
+    cb(err)
+  }
+
+
+  var statRepositories = function (args, system, cb) {
+    var err = null
+    if (args.length === 1 || args[1] === 'all') {
+      _runner.statAll(system, cb)
+    } else if (args.length >= 2) {
+      err = _runner.stat(system, args[1], cb)
+    }
+    cb(err)
+  }
 
 
   var printZone = function (args, system, cb) {
@@ -334,6 +362,21 @@ module.exports = function () {
       command: 'zone',
       action: printZone,
       description: 'displays dns zone information if enabled'
+    },
+    {
+      command: 'pull',
+      action: pullRepositories,
+      description: 'performs a git pull command for all artifacts with a defined repository_url setting'
+    },
+    {
+      command: 'test',
+      action: testRepositories,
+      description: 'performs a test command for all artifacts with a defined test setting'
+    },
+    {
+      command: 'status',
+      action: statRepositories,
+      description: 'performs a git status and git branch command for all artifacts with a defined repository_url setting'
     },
     {
       command: 'exit',
@@ -430,12 +473,11 @@ module.exports = function () {
     })
 
     commands.forEach(function (com) {
-      if (com.command === 'watch' || com.command === 'unwatch' ||
-        com.command === 'info' || com.command === 'tail' || com.command === 'untail') {
+      if (com.command === 'watch' || com.command === 'unwatch' || com.command === 'tail' || com.command === 'untail' || com.command === 'pull' || com.command === 'test' || com.command === 'status') {
         inputStructure(com.command, '[process]', com.description, com.action, system)
       } else if (com.command === 'debug') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
-      } else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit' || com.command === 'grep') {
+      } else if (com.command === 'start' || com.command === 'stop' || com.command === 'exit' || com.command === 'grep' || com.command === 'info') {
         inputStructure(com.command, '[process...]', com.description, com.action, system)
       } else if (com.command === 'profile') {
         inputStructure(com.command, '<process>', com.description, com.action, system)
