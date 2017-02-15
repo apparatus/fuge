@@ -18,6 +18,7 @@ mochahelper.js
 dist
 .tmp
 .sass-cache
+.nyc_output
 app/bower_components
 options.mine.js
 db/

@@ -38,16 +38,18 @@
     "fuge": "./fuge.js"
   },
   "scripts": {
-    "lint": "spacey-standard",
-    "test": "npm run lint && node test",
-    "coverage": "istanbul cover test/*Test.js && open ./coverage/lcov-report/index.html",
-    "coverage-check": "istanbul cover test/*Test.js && istanbul check-coverage",
-    "commit-check": "npm run lint"
+    "lint": "echo 'linting...' && spacey-standard | snazzy",
+    "test": "node 'test/**/*.test.js'",
+    "commit-check": "npm run test && npm run lint",
+    "coverage": "istanbul cover test/*.test.js && open ./coverage/lcov-report/index.html"
   },
   "devDependencies": {
-    "del": "^2.1.0",
-    "pre-commit": "^1.1.1",
-    "spacey-standard": "^3.0.0",
-    "tape": "^4.2.0"
+    "istanbul": "^0.4.5",
+    "json-stringify-safe": "^5.0.1",
+    "pre-commit": "^1.1.3",
+    "proxyquire": "^1.7.11",
+    "request": "^2.69.0",
+    "snazzy": "^5.0.0",
+    "spacey-standard": "^3.0.0"
   }
 }
