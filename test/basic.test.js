@@ -40,7 +40,6 @@ runner.start('system.yml', function () {
   async.eachSeries(Object.keys(scenarios), function (key, next) {
     runner.run(scenarios[key], function (result, output) {
       assert(result, 'check ' + key + ' results as expected')
-      console.log(output)
       next()
     })
   }, function () {
