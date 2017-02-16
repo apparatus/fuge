@@ -1,6 +1,7 @@
 fuge_global:
   run_containers: false
   tail: true
+  dns_enabled: true
   monitor: false
   monitor_excludes:
     - '**/node_modules/**'

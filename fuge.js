@@ -16,7 +16,7 @@
 'use strict'
 
 var program = require('commist')()
-var shell = require('./shell')()
+var shell = require('./shell')(true)
 var util = require('./util')()
 
 
@@ -46,7 +46,7 @@ var runCommand = function (command) {
     console.log('compiling...')
     util.compile(args, function (err, system) {
       if (err) { return console.error(err) }
-      shell.runSingleCommand(system, command + ' all')
+      shell.runSingleCommand(system, command)
     })
   }
 }

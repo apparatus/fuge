@@ -15,34 +15,30 @@
 'use strict'
 
 var path = require('path')
-var shell = require('../../shell')()
+var shell = require('../../shell')(false)
 var util = require('../../util')()
 var async = require('async')
 
 
 module.exports = function () {
-  var vorpal
-
-  function startShell (configFile, cb) {
-    var args = [path.join(__dirname, '..', 'fixtures', 'system', 'fuge', configFile)]
-    util.compile(args, function (err, system) {
-      if (err) { console.error(err); return cb() }
-      cb(shell.run(system))
-    })
-  }
-
+  var rl
+  var sys
 
   function start (configFile, cb) {
-    startShell(configFile, function (vpl) {
-      vorpal = vpl
-      cb()
+    var args = [path.join(__dirname, '..', 'fixtures', 'system', 'fuge', configFile)]
+    util.compile(args, function (err, system) {
+      sys = system
+      if (err) { console.error(err); return cb(err) }
+      shell.run(system, function (readl) {
+        rl = readl
+        setTimeout(cb, 500)
+      })
     })
   }
 
 
   function end () {
-    vorpal.exec('exit', function () {
-    })
+    rl.write('exit\n')
   }
 
 
@@ -55,10 +51,12 @@ module.exports = function () {
     }
 
     async.eachSeries(command.cmds, function (cmd, next) {
-      console.error('EXECUTING: ' + cmd)
-      vorpal.exec(cmd, function () {
-        next()
-      })
+      rl.write(cmd + '\n')
+      if (command.delay) {
+        setTimeout(next, command.delay)
+      } else {
+        setTimeout(next, 100)
+      }
     }, function () {
       var result = false
       var count = 0
@@ -77,9 +75,16 @@ module.exports = function () {
   }
 
 
+  function runSingle (cmd, cb) {
+    shell.runSingleCommand(sys, cmd)
+    setTimeout(cb, 500)
+  }
+
+
   return {
     start: start,
     run: run,
+    runSingle: runSingle,
     end: end
   }
 }
