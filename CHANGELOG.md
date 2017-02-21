@@ -1,4 +1,7 @@
 WIP -
+* added DNS functionality to emulate Kubernetes
+* re-wrote the config file now a single yaml file
+* full unit testing on all modules to near 100% coverage
 * Removed generator functionality and dependencies
 * Added __git generate user/repo__ functionality
 

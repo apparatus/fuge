@@ -16,60 +16,39 @@
 'use strict'
 
 var program = require('commist')()
-var runner = require('./runner')()
-var shell = require('./shell')()
+var shell = require('./shell')(true)
 var util = require('./util')()
-var Pkg = require('./package.json')
 
 
-var showVersion = function () {
-  console.log('v' + Pkg.version)
+function showVersion (args, system, cb) {
+  console.log('')
+  console.log('fuge: ' + require('./package.json').version)
+  console.log('fuge-runner: ' + require('fuge-runner/package.json').version)
+  console.log('fuge-config: ' + require('fuge-config/package.json').version)
+  console.log('fuge-dns: ' + require('fuge-dns/package.json').version)
 }
 
 
-var buildSystem = function (args) {
-  console.log('building...')
-
-  util.compile(args, function (err, system, config) {
-    if (err) { return console.error(err) }
-
-    runner.buildSystem(system, config, function (err) {
-      if (err) { return console.error(err) }
-    })
-  })
+var showHelp = function () {
+  console.log('')
+  console.log('usage: fuge <command> <options>')
+  console.log('fuge shell <fuge-file>       start the fuge shell')
+  console.log('fuge pull <fuge-file>        update a system by running a pull against each service repository')
+  console.log('fuge status <fuge-file>      determine git branch and status against each service repository')
+  console.log('fuge test <fuge-file>        execute test scripts for all services')
+  console.log('fuge version                 display fuge version information')
+  console.log('fuge help                    show this help')
 }
 
 
-var pullSystem = function (args) {
-  console.log('pulling...')
-
-  util.compile(args, function (err, system, config) {
-    if (err) { return console.error(err) }
-
-    runner.pullSystem(system, config, function (err) {
+var runCommand = function (command) {
+  return function (args) {
+    console.log('compiling...')
+    util.compile(args, function (err, system) {
       if (err) { return console.error(err) }
-    })
-  })
-}
-
-
-var cloneRepo = function (args) {
-  console.log('pulling...')
-
-  if (args && args.length > 0) {
-    return runner.cloneRepo(args[0], function (err) {
-      if (err) { return console.error(err) }
+      shell.runSingleCommand(system, command)
     })
   }
-}
-
-
-var runSystem = function (args) {
-  console.log('compiling...')
-  util.compile(args, function (err, system) {
-    if (err) { return console.error(err) }
-    shell.runSingleCommand(system, 'start all')
-  })
 }
 
 
@@ -82,40 +61,14 @@ var runShell = function (args) {
 }
 
 
-var previewSystem = function (args) {
-  console.log('compiling...')
-  util.compile(args, function (err, system, config) {
-    if (err) { return console.error(err) }
-    runner.previewSystem(system, config)
-  })
-}
-
-
-var showHelp = function () {
-  console.log('usage: fuge <command> <options>')
-  console.log('')
-  console.log('fuge build                      build a system by executing the RUN commands in each services Dockerfile')
-  console.log('fuge pull <compose-file>        update a system by attempting a git pull against each service')
-  console.log('fuge clone <Github repo>        clone a Github repo, supports all valid repo name formats')
-  console.log('fuge run <compose-file>         run a system')
-  console.log('fuge preview <compose-file>     preview a run command for a system')
-  console.log('fuge shell <compose-file>       start an interactive shell for a system')
-  console.log('fuge version                    version of fuge')
-  console.log('fuge help                       show this help')
-}
-
-
-program.register('build', buildSystem)
-program.register('pull', pullSystem)
-program.register('clone', cloneRepo)
-program.register('generate', cloneRepo)
-program.register('run', runSystem)
-program.register('preview', previewSystem)
-program.register('shell', runShell)
 program.register('version', showVersion)
 program.register('--version', showVersion)
 program.register('help', showHelp)
 program.register('--help', showHelp)
+program.register('pull', runCommand('pull'))
+program.register('status', runCommand('status'))
+program.register('test', runCommand('test'))
+program.register('shell', runShell)
 
 
 function start (argv) {
@@ -128,3 +81,4 @@ module.exports = start
 if (require.main === module) {
   start(process.argv.slice(2))
 }
+

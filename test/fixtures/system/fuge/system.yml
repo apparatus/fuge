@@ -1,0 +1,23 @@
+fuge_global:
+  run_containers: false
+  tail: true
+  dns_enabled: true
+  monitor: false
+  monitor_excludes:
+    - '**/node_modules/**'
+    - '**/.git/**'
+    - '*.log'
+  restart_on_error: true
+  auto_generate_environment: true
+runme:
+  type: node 
+  path: ../runme
+  run: node runme.js
+  ports:
+    - main=8000
+runmetoo:
+  type: process
+  path: ../runmetoo
+  run: node runmetoo.js
+  ports:
+    - main=8001
