@@ -243,13 +243,12 @@ module.exports = function () {
 
 
   var showHelp = function (args, system, cb) {
+    var table = new CliTable({chars: tableChars, style: tableStyle, colWidths: [15, 65]})
     console.log('available commands:')
-    console.log()
     Object.keys(_commands).forEach(function (key) {
-      console.log(key + ':\n    ' + _commands[key].description)
-      console.log()
+      table.push([key, _commands[key].description])
     })
-    console.log()
+    console.log(table.toString())
     cb()
   }
 
