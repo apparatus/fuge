@@ -243,13 +243,12 @@ module.exports = function () {
 
 
   var showHelp = function (args, system, cb) {
+    var table = new CliTable({chars: tableChars, style: tableStyle, colWidths: [10, 100]})
     console.log('available commands:')
-    console.log()
     Object.keys(_commands).forEach(function (key) {
-      console.log(key + ':\n    ' + _commands[key].description)
-      console.log()
+      table.push([key, _commands[key].description])
     })
-    console.log()
+    console.log(table.toString())
     cb()
   }
 
@@ -266,9 +265,9 @@ module.exports = function () {
     untail: {action: untailProcess, sub: [], description: 'stop tailing output for a specific processes, usage: untail <process> | all'},
     grep: {action: grepLogs, sub: [], description: 'searches logs for specific process or all logs, usage: grep <string> [<process>]'},
     zone: {action: printZone, description: 'displays dns zone information if enabled'},
-    pull: {action: pullRepositories, sub: [], description: 'performs a git pull command for all artifacts with a defined repository_url setting, usage: pull <process> | all'},
-    test: {action: testRepositories, sub: [], description: 'performs a test command for all artifacts with a defined test setting, usage: test <process> | all'},
-    status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a defined repository_url setting, usage: status <process> | all'},
+    pull: {action: pullRepositories, sub: [], description: 'performs a git pull command for all artifacts with a defined repository_url setting,\n usage: pull <process> | all'},
+    test: {action: testRepositories, sub: [], description: 'performs a test command for all artifacts with a defined test setting,\n usage: test <process> | all'},
+    status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | all'},
     help: {action: showHelp, description: 'show help on commands'}
   }
 
