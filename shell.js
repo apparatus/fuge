@@ -63,9 +63,16 @@ module.exports = function (hardExit) {
 
     morp = tpm(readline)
 
-    var rl = morp.start('fuge> '.white, commands, function (err, command, args) {
+    var rl = morp.start('fuge> '.white, commands, function (err, command, args, line) {
       if (err) {
-        morp.displayPrompt()
+        if (line && line.length > 0) {
+          cmds.shell(line, system, function (err) {
+            if (err) { console.log(err.red) }
+            morp.displayPrompt()
+          })
+        } else {
+          morp.displayPrompt()
+        }
       } else {
         command.action(args, system, function (err) {
           if (err) { console.log(err.red) }

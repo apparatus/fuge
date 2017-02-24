@@ -28,6 +28,11 @@ module.exports = function () {
 
 
   var psList = function (args, system, cb) {
+
+    if (args.length > 0) {
+      return shellExecute('ps ' + args.join(' '), system, cb)
+    }
+
     var table = new CliTable({chars: tableChars, style: tableStyle, head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15]})
 
     _.each(system.topology.containers, function (container) {
@@ -242,12 +247,23 @@ module.exports = function () {
   }
 
 
+  var shellExecute = function (command, system, cb) {
+    _runner.shell(system, command, cb)
+  }
+
+
+  var applyCommand = function (args, system, cb) {
+    _runner.apply(system, args.join(' '), cb)
+  }
+
+
   var showHelp = function (args, system, cb) {
     var table = new CliTable({chars: tableChars, style: tableStyle, colWidths: [10, 100]})
     console.log('available commands:')
     Object.keys(_commands).forEach(function (key) {
       table.push([key, _commands[key].description])
     })
+    table.push(['...', 'unmatched commands will be passed to the underlying shell for execution'])
     console.log(table.toString())
     cb()
   }
@@ -268,6 +284,7 @@ module.exports = function () {
     pull: {action: pullRepositories, sub: [], description: 'performs a git pull command for all artifacts with a defined repository_url setting,\n usage: pull <process> | all'},
     test: {action: testRepositories, sub: [], description: 'performs a test command for all artifacts with a defined test setting,\n usage: test <process> | all'},
     status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | all'},
+    apply: {action: applyCommand, sub: [], description: 'apply a shell command to all processes'},
     help: {action: showHelp, description: 'show help on commands'}
   }
 
@@ -287,7 +304,8 @@ module.exports = function () {
 
 
   return {
-    init: init
+    init: init,
+    shell: shellExecute
   }
 }
 
