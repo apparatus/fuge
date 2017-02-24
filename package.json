@@ -7,7 +7,7 @@
     "manager",
     "generator"
   ],
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
@@ -30,7 +30,7 @@
     "fuge-dns": "beta",
     "fuge-runner": "beta",
     "lodash": "^4.5.0",
-    "tpmorp": "^1.0.3"
+    "tpmorp": "^1.0.5"
   },
   "repository": {
     "type": "git",
