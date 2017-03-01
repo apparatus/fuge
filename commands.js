@@ -106,6 +106,17 @@ module.exports = function () {
     }
   }
 
+  var restartProcess = function (args, system, cb) {
+    var services = Array.isArray(args) && args.length > 1
+                 && Array.isArray(args[1]) && args[1].length
+                 && args[1] || false
+    if (!services) return cb('Need an process to restart'.red)
+    var service = _.first(services)
+    return stopProcess(['stop', [service]], system, function onStopProcess () {
+      return startProcess(['start', [service]], system, cb)
+    })
+  }
+
 
   var debugProcess = function (args, system, cb) {
     if (args.length === 1) {
@@ -274,6 +285,7 @@ module.exports = function () {
     info: {action: showInfo, sub: [], description: 'show process and container environment information, usage: info <process> [full]'},
     start: {action: startProcess, sub: [], description: 'start processes, usage: start<process> | all'},
     stop: {action: stopProcess, sub: [], description: 'stop processes, usage: stop <process> | all'},
+    restart: {action: restartProcess, sub: [], description: 'restart a single process, usage: restart <process>'},
     debug: {action: debugProcess, sub: [], description: 'start a process in debug mode, usage: debug <process>'},
     watch: {action: watchProcess, sub: [], description: 'turn on watching for a process, usage: watch <process> | all'},
     unwatch: {action: unwatchProcess, sub: [], description: 'turn off watching for a process, usage: unwatch <process> | all'},
