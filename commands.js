@@ -107,13 +107,13 @@ module.exports = function () {
   }
 
   var restartProcess = function (args, system, cb) {
-    var services = Array.isArray(args) && args.length > 1
-                 && Array.isArray(args[1]) && args[1].length
-                 && args[1] || false
+    var services = Array.isArray(args) && args.length && args || false
     if (!services) return cb('Need an process to restart'.red)
     var service = _.first(services)
     return stopProcess(['stop', [service]], system, function onStopProcess () {
-      return startProcess(['start', [service]], system, cb)
+      return startProcess(['start', [service]], system, function onStartProcess() {
+        return cb('process ' + service + ' restarted'.toString())
+      })
     })
   }
 

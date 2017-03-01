@@ -26,6 +26,7 @@ var scenarios = {
   tail: {cmds: ['untail all', 'tail all', 'untail runmetoo', 'tail runme', 'ps'], expect: [/runme.*node.*stopped.*no.*yes/g, /runmetoo.*process.*stopped.*no.*no/g]},
   startStop: {cmds: ['start runme', 'ps', 'stop runme'], expect: [/runme.*node.*running.*no.*yes/g, /runmetoo.*process.*stopped.*no.*no/g]},
   startStopAll: {cmds: ['start all', 'ps', 'stop all'], expect: [/runme.*node.*running.*no.*yes/g, /runmetoo.*process.*running.*no.*no/g], delay: 1000},
+  restart: {cmds: ['restart runme'], expect: [/process runme restarted/]},
   debug: {cmds: ['debug runme', 'ps', 'stop runme'], expect: [/runme.*node.*running.*no.*yes/g, /runmetoo.*process.*stopped.*no.*no/g], delay: 1000},
   grep: {cmds: ['grep Server runme'], expect: [/Server running at http/g]},
   grepAll: {cmds: ['grep Server'], expect: [/Server running at http/g]},
