@@ -135,6 +135,7 @@ The fuge shell supports the following commands:
 * `stop all` - stop all processes and watchers
 * `start [process]` - start a process
 * `start all` - start all stopped processes
+* `restart [process]` - Restart only process
 * `debug [process]` - start a process in debug mode and launch node-debug (experimental)
 * `profile [process]` - profile via [0x][], when the process is stopped a flamegraph will be generated.
 * `watch [process] | all` - turn on watching for a process or for all processes
