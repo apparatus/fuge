@@ -106,15 +106,19 @@ module.exports = function () {
     }
   }
 
+
   var restartProcess = function (args, system, cb) {
-    var services = Array.isArray(args) && args.length && args || false
-    if (!services) return cb('Need an process to restart'.red)
-    var service = _.first(services)
-    return stopProcess(['stop', [service]], system, function onStopProcess () {
-      return startProcess(['start', [service]], system, function onStartProcess() {
-        return cb('process ' + service + ' restarted'.toString())
-      })
-    })
+    if (args.length === 1) {
+      if (_runner.isProcessRunning(system, args[0])) {
+        _runner.stop(system, args[0], function () {
+          _runner.start(system, args[0], cb)
+        })
+      } else {
+        cb('process not running!')
+      }
+    } else {
+      cb('usage: restart <process>')
+    }
   }
 
 
