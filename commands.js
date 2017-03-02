@@ -107,6 +107,21 @@ module.exports = function () {
   }
 
 
+  var restartProcess = function (args, system, cb) {
+    if (args.length === 1) {
+      if (_runner.isProcessRunning(system, args[0])) {
+        _runner.stop(system, args[0], function () {
+          _runner.start(system, args[0], cb)
+        })
+      } else {
+        cb('process not running!')
+      }
+    } else {
+      cb('usage: restart <process>')
+    }
+  }
+
+
   var debugProcess = function (args, system, cb) {
     if (args.length === 1) {
       if (!_runner.isProcessRunning(system, args[0])) {
@@ -274,6 +289,7 @@ module.exports = function () {
     info: {action: showInfo, sub: [], description: 'show process and container environment information, usage: info <process> [full]'},
     start: {action: startProcess, sub: [], description: 'start processes, usage: start<process> | all'},
     stop: {action: stopProcess, sub: [], description: 'stop processes, usage: stop <process> | all'},
+    restart: {action: restartProcess, sub: [], description: 'restart a single process, usage: restart <process>'},
     debug: {action: debugProcess, sub: [], description: 'start a process in debug mode, usage: debug <process>'},
     watch: {action: watchProcess, sub: [], description: 'turn on watching for a process, usage: watch <process> | all'},
     unwatch: {action: unwatchProcess, sub: [], description: 'turn off watching for a process, usage: unwatch <process> | all'},
