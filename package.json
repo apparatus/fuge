@@ -4,8 +4,9 @@
   "keywords": [
     "fuge",
     "microservices",
-    "manager",
-    "generator"
+    "kubernetes",
+    "docker",
+    "shell"
   ],
   "version": "1.0.2",
   "license": "MIT",
