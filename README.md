@@ -1,149 +1,123 @@
 ![fuge-logo][logo]
 
-# fuge
+## **<span style="color:red">Fuge configuration has changed if you are upgrading to fuge V2.0 read this guide [upgrading.md](./upgrading.md)</span>**
+
+# Fuge - The Microservice Shell
 [![npm version][npm-badge]][npm-url]
 [![npm downloads][npm-downloads-badge]][npm-url]
 [![Build Status][travis-badge]][travis-url]
 [![Win Status][win-badge]][win-url]
 [![Gitter][gitter-badge]][gitter-url]
 
-Fuge provides a generation and execution environment for microservice development on Node.js. It aims to help developers working on microservice systems in several ways:
-
-- By providing a service execution environment
-- By reducing the friction between processes and containers during development
-
-Full documentation is available at [fuge.io](http://fuge.io/).
+Fuge is a microservice shell and workbench. It provides an execution environment for developing microservice systems, eliminating shell hell and significantly reducing developer friction.
 
 If you're using this module, and need help, you can:
 
-- Post a [github issue][],
+- Post a [github issue](https://github.com/apparatus/fuge/issues),
 - Ask on the [Gitter][gitter-url].
+- Reach out on twitter to @pelger
 
 ## Install
-To install, use npm to install globally.
+Use npm to install globally.
 
 ```
 npm install -g fuge
 ```
 
+## A Micoservice shell?
+Yup. Fuge is a shell environment that focuses on a specific system configuration, providing an emulation environment in which services can run in development that is close to a modern container production deployment.
+
 ## Usage
-In order to run your system via fuge, you need the following key files,
+In order to run your system via fuge, you need to create a YAML configuration file. Fuge also integrates with docker-compose. Full documentation on configuring fuge is [available here](https://github.com/apparatus/fuge-config).
 
-* A `docker-compose.yaml` file that serves as the main configuration reference for the system
-* A `fuge-config.js` file that contains fuge specific settings and overrides not supported by docker-compose
+Full example demonstration systems are available here:
+[https://github.com/apparatus/fuge-examples](https://github.com/apparatus/fuge-examples).
 
-Each service in the system should have a Dockerfile or an entry in the overrides section of `fuge-config.js`. Once added
-follow the commands below to configure, start, stop, and build your system.
-
-### Docker
-Fuge is fully compatible the the v1 docker-compose format. This means the fuge docker-compose file can be run entirely using docker-compose. If you have Docker installed you can try this out by running,
+## Example Configuration
+A simple configuration is provided below:
 
 ```
-cd ./fuge_system_folder
-docker-compose up
-```
-
-Docker will build a set of containers and start them up for you using the docker-compose yaml file.
-
-__NOTE:__ currently fuge only supports the docker-compose v1 format.
-
-#### Proxy
-Proxy is now deprecated as native docker has negated the need for this functionality.
-
-### Running Infrastructure
-Let's say that we want one of our services to connect a redis server. We could go ahead and install redis to our development system. Another approach however is to use Docker. If you have Docker installed then try the following:
-
-Edit the system yaml file (let's name it `compose-dev.yml`) and add the following:
-
-```
-redis:
-  image: redis
+fuge_global:
+  tail: true
+  monitor: true
+  monitor_excludes:
+    - '**/node_modules/**'
+    - '**/.git/**'
+    - '*.log'
+myservice:
+  type: process
+  path: ../myservice
+  run: 'node index.js'
   ports:
-    - 6379:6379
+    - myservice=8000
+webapp:
+  type: process
+  path: ../webapp
+  run: 'npm start'
+  ports:
+    - webapp=3000
+mongo:
+  image: mongo
+  type: container
+  ports:
+    - mongo=27017:27017
 ```
 
-Ensure that the redis container is on your system by running:
+This configuration defines a front end webapp process, a single microservice and a mongodb container. The system can be started by running:
 
-```
-docker pull redis
-```
-
-Start the system up in the fuge shell again by running:
-
-```
-fuge shell ./fuge/compose-dev.yml
+```sh
+$ fuge shell <path to config file>
+fuge> start all
 ```
 
-Starting fuge will now start the redis container as well as your micro-services.
+This will start the mongo container through the local docker API and also the webapp and myservice processes. Fuge will also inject configuration information into these processes as environment variables, tail the logs and watch the file system for changes, restarting the appropriate processes as you write code.
 
-### Sample config
-```
-module.exports = {
+To fully explore the capabilites of Fuge, you are encouraged to run the example systems which can be found here: [https://github.com/apparatus/fuge-examples](https://github.com/apparatus/fuge-examples).
 
-  // run docker containers. If false containers with image attribute will not be run
-  runDocker: true,
+## Docker
+Fuge is fully compatible with V1, V2 and V3 docker-compose formats. Fuge services can be specified entirely using docker-compose or entirely in fuge.yml or a mixture of anything in between.
 
-  // if true tail running process to the shell by default
-  tail: false,
+## Command Reference
+Fuge can be started by running:
 
-  // if true monitor running processes for changes by default
-  monitor: true,
-
-  // exclude these patterns from the monitor
-  exclude: /node_modules|\.git|\.log/mgi,
-
-  // override section. Allows the default build, run and debug commands
-  // to be overriden on a service by service basis. These commands are
-  // normally generated by inspecting the Dockerfile for a service
-  overrides: {
-    service1: { build: 'sh build.sh' }
-  }
-}
+```sh
+$ fuge shell <path to fuge config file>
+fuge>
 ```
 
-## Terminal Commands
+The fuge command shell supports the following commands
 
-Fuge commands have the following format:
+| command       | action        |
+| ------------- | ------------- |
+| `help`  | display a list of supported commands |
+| `ps` | list status of managed processes and containers |
+| `info` [process] [full]`| show information on a specific process. The `full` option will output the entire environment that will be injected into this process|
+| `start [process] / all` | start a process or all processes |
+| `stop [process] / all` | stop a process and any associated watcher or all processes |
+| `debug [process]` | start a process in debug mode (only supported for node.js processes) |
+| `apply [Shell command]` | run the specified shell command in the root of each service e.g. `apply npm install`, `apply git status` |
+| `zone` | display dns zone information for fuge internal DNS server - requires the `dns_enabled` setting in fuge configuration file |
+| `watch [process] / all` | turn on watching for a process or for all processes |
+| `unwatch [process] / all` | turn off watching for a process or for all processes |
+| `tail [process] / all` | tail output for a process or for all processes |
+| `untail [process] / all` | end tail output for a specific processes or for all processes |
+| `grep 'search string' [process]` | searches a process' log or all processes' logs |
+| `exit` | terminate all managed processes and exit the shell |
 
-`fuge <command> <options>`
+### Shell pass through
+In addition to the above commands, Fuge will pass through all other commands to the underlying shell, for example:
 
-The current supported commands are:
-
-* `fuge build` - build a system by executing the RUN commands in each services Dockerfile
-* `fuge pull <compose-file>` - update a system by attempting a git pull against each service
-* `fuge clone <Github repo>` - clone a Github repo, supports all valid repo name formats. Main use case `owner/repo`. Example: `fuge clone apparatus/fuge`
-* `fuge generate <Github repo>` - alias for `fuge clone`. Will be deprecated.
-* `fuge run <compose-file>` - run a system
-* `fuge preview <compose-file>` - preview a run command for a system
-* `fuge shell <compose-file>` - start an interactive shell for a system
-* `fuge version` - display the fuge version
-* `fuge help` - show help
-
-## Fuge Shell Commands
-Fuge provides a simple shell to manage microservice execution. To start the shell run:
-
+```sh
+fuge> ps aux | grep -i node
 ```
-fuge shell ./fuge/compose-dev.yml
+
+Will bypass the fuge ps command and execute the underlying `ps` command.
+
+```sh
+fuge> netstat -an | grep -i listen
 ```
 
-The fuge shell supports the following commands:
-
-* `help` - display a list of supported commands
-* `ps` - list status of managed processes and containers
-* `info [process name]` - show information on a specific process
-* `stop [process]` - stop a process and any associated watcher
-* `stop all` - stop all processes and watchers
-* `start [process]` - start a process
-* `start all` - start all stopped processes
-* `restart [process]` - Restart only process
-* `debug [process]` - start a process in debug mode and launch node-debug (experimental)
-* `profile [process]` - profile via [0x][], when the process is stopped a flamegraph will be generated.
-* `watch [process] | all` - turn on watching for a process or for all processes
-* `unwatch [process] | all` - turn off watching for a process or for all processes
-* `tail [process] | all` - tail output for a process or for all processes
-* `untail [process] | all` - end tail output for a specific processes or for all processes
-* `grep 'search string' [process]` - searches a process' log or all processes' logs
-* `exit` - terminate all managed processes and exit
+Will be passed through to the underlying shell to display a lists of open listening port and so on.
 
 ## Contributing
 The [apparatus team][] encourage open participation. If you feel you can help in any way, be it with
