@@ -8,7 +8,7 @@
     "docker",
     "shell"
   ],
-  "version": "2.0.1",
+  "version": "2.0.2",
   "license": "MIT",
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
@@ -29,7 +29,7 @@
     "death": "^1.0.0",
     "fuge-config": "^2.0.1",
     "fuge-dns": "^2.0.0",
-    "fuge-runner": "^2.0.0",
+    "fuge-runner": "^2.0.1",
     "lodash": "^4.5.0",
     "tpmorp": "^1.0.5"
   },
