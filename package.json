@@ -8,7 +8,7 @@
     "docker",
     "shell"
   ],
-  "version": "2.0.2",
+  "version": "2.0.3",
   "license": "MIT",
   "author": "Peter Elger (http://nearform.com/)",
   "contributors": [
