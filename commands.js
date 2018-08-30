@@ -106,7 +106,7 @@ module.exports = function () {
   }
 
 
-  //separate isGroup function for grep as it takes the second argument as the group
+  //separate isGroup function for grep, as it takes the second argument as the group
   function isGrepGroup(args, system){
     var isgroup = false
     _.each(system.topology.containers, function (container) {
@@ -125,7 +125,7 @@ module.exports = function () {
       if (isGroup(args, system))     { startGroup(args, system, cb) } else
       { _runner.start(system, args[0], cb) }
     } else {
-      cb('usage: start <process> | all')}
+      cb('usage: start <process> | <group> | all')}
   }
 
 
@@ -135,7 +135,7 @@ module.exports = function () {
       if (isGroup(args, system))     { stopGroup(args, system, cb) } else
       { _runner.stop(system, args[0], cb)}
     } else {
-      cb('usage: stop <process> | all')}
+      cb('usage: stop <process> | <group> | all')}
   }
 
 
@@ -157,7 +157,6 @@ module.exports = function () {
   }
 
 
-
   function restartGroup(args, system, cb){
     _.each(system.topology.containers, function(container){
       if (container.group===args[0]){
@@ -166,11 +165,9 @@ module.exports = function () {
             _runner.start(system, container.name, cb)
             })
         } else {cb('process not running!') }
-
       }
     })
   }
-
 
 
   var debugProcess = function (args, system, cb) {
@@ -340,7 +337,7 @@ module.exports = function () {
         _runner.test(system, args[0], cb)
       }
       }
-    }else  cb('usage: test <process> | all')
+    }else  cb('usage: test <process> | <group> | all')
   }
 
 
@@ -363,7 +360,7 @@ module.exports = function () {
           _runner.stat(system, args[0], cb)
         }
       }
-    }else   cb('usage: stat <process> | all')
+    }else   cb('usage: stat <process> | <group> | all')
   }
 
 
@@ -457,19 +454,19 @@ module.exports = function () {
     ps: {action: psList, description: 'list managed processes and containers, usage: ps'},
     info: {action: showInfo, sub: [], description: 'show process and container environment information, usage: info <process> [full]'},
     start: {action: startProcess, sub: [], description: 'start processes or group, usage: start <process> | <group> | all'},
-    stop: {action: stopProcess, sub: [], description: 'stop process or group, usage: stop <process> | <group> | all \n groups are [def] or [crit]'},
+    stop: {action: stopProcess, sub: [], description: 'stop process or group, usage: stop <process> | <group> | all'},
     show: {action: showGroups, sub:[], description: 'Show groups. usage: show'},
     restart: {action: restartProcess, sub: [], description: 'restart a process or group, usage: restart <process> | <group>'},
     debug: {action: debugProcess, sub: [], description: 'start a process in debug mode, usage: debug <process>'},
-    watch: {action: watchProcess, sub: [], description: 'turn on watching for a process or group, usage: watch <process> | all'},
-    unwatch: {action: unwatchProcess, sub: [], description: 'turn off watching for a process or group, usage: unwatch <process> | all'},
-    tail: {action: tailProcess, sub: [], description: 'tail output for processes or group, usage: tail <process> | all'},
-    untail: {action: untailProcess, sub: [], description: 'stop tailing output for a specific processes or group, usage: untail <process> | all'},
-    grep: {action: grepLogs, sub: [], description: 'searches logs for specific process or all logs, usage: grep <string> [<process>]'},
+    watch: {action: watchProcess, sub: [], description: 'turn on watching for a process or group, usage: watch <process> | <group> | all'},
+    unwatch: {action: unwatchProcess, sub: [], description: 'turn off watching for a process or group, usage: unwatch <process> | <group>  | all'},
+    tail: {action: tailProcess, sub: [], description: 'tail output for processes or group, usage: tail <process> | <group> | all'},
+    untail: {action: untailProcess, sub: [], description: 'stop tailing output for a specific processes or group, usage: untail <process> | <group> | all'},
+    grep: {action: grepLogs, sub: [], description: 'searches logs for specific process or all logs, usage: grep <string> [<process> | <group> | all]'},
     zone: {action: printZone, description: 'displays dns zone information if enabled'},
-    pull: {action: pullRepositories, sub: [], description: 'performs a git pull command for all artifacts with a defined repository_url setting,\n usage: pull <process> | all'},
-    test: {action: testRepositories, sub: [], description: 'performs a test command for all artifacts with a defined test setting,\n usage: test <process> | all'},
-    status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | all'},
+    pull: {action: pullRepositories, sub: [], description: 'performs a git pull command for all artifacts with a defined repository_url setting,\n usage: pull <process> | <group> | all'},
+    test: {action: testRepositories, sub: [], description: 'performs a test command for all artifacts with a defined test setting,\n usage: test <process> | <group> | all'},
+    status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | <group> | all'},
     apply: {action: applyCommand, sub: [], description: 'apply a shell command to all processes'},
     help: {action: showHelp, description: 'show help on commands'}
   }
