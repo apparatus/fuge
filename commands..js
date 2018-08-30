@@ -18,7 +18,6 @@ var _ = require('lodash')
 var CliTable = require('cli-table')
 require('colors')
 
-
 module.exports = function () {
   var _runner = null
   var _dns = null
@@ -26,28 +25,32 @@ module.exports = function () {
   var tableChars = { 'top': '', 'top-mid': '', 'top-left': '', 'top-right': '', 'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '', 'left': '', 'left-mid': '', 'mid': '', 'mid-mid': '', 'right': '', 'right-mid': '', 'middle': '' }
   var tableStyle = { 'padding-left': 0, 'padding-right': 0 }
 
+  var default_group=[]
+  var critical_group=[]
 
   var psList = function (args, system, cb) {
-
     if (args.length > 0) {
       return shellExecute('ps ' + args.join(' '), system, cb)
     }
 
-    var table = new CliTable({chars: tableChars, style: tableStyle, head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15]})
+    var table = new CliTable({chars: tableChars, style: tableStyle, head: ['name'.white, 'type'.white, 'group'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15, 15]})
 
     _.each(system.topology.containers, function (container) {
-      if (container.type === 'container' && system.global.run_containers === false) {
-        table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', ''])
+     if(!container.group){container.group="default"}
+     if (container.type === 'container' && system.global.run_containers === false) {
+        table.push([container.name.gray, container.type.gray, container.group.gray, 'not managed'.gray, '', ''])
       } else {
         if (container.process && container.process.flags.running) {
           table.push([container.name.green,
             container.type.green,
+            container.group.green,
             'running'.green,
             container.monitor ? 'yes'.green : 'no'.red,
             container.tail ? 'yes'.green : 'no'.red])
         } else {
           table.push([container.name.red,
             container.type.red,
+            container.group.red,
             'stopped'.red,
             container.monitor ? 'yes'.green : 'no'.red,
             container.tail ? 'yes'.green : 'no'.red])
@@ -57,6 +60,7 @@ module.exports = function () {
     if (_dns) {
       table.push(['dns'.green,
         'internal'.green,
+         'other'.green,
         'running'.green,
         'no'.red,
         'no'.red])
@@ -67,7 +71,7 @@ module.exports = function () {
 
 
   var showInfo = function (args, system, cb) {
-    if (args.length > 0) {
+      if (args.length > 0) {
       if (args.length === 1) {
         _runner.preview(system, args[0], 'short', cb)
       } else if (args.length === 2 && args[1] === 'full') {
@@ -81,45 +85,76 @@ module.exports = function () {
   }
 
 
-  var stopProcess = function (args, system, cb) {
-    if (args.length === 1) {
-      if (args[0] === 'all') {
-        _runner.stopAll(system, cb)
-      } else {
-        _runner.stop(system, args[0], cb)
+// fill array with process group values. critical if critical, or else default
+  function groups (system){
+     _.each(system.topology.containers, function (container) {
+    if (container.group === 'critical'){
+      critical_group.push(container.name);
       }
-    } else {
-      cb('usage: stop <process> | all')
+      else{
+        default_group.push(container.name)
     }
+  })
+  }
+
+  function isGroup(args){
+    if (args[0] === 'def'||  args[1] === 'def')  { return true}  else
+    if (args[0] === 'crit'|| args[1] === 'crit') { return true}  else
+      return false
   }
 
 
   var startProcess = function (args, system, cb) {
     if (args.length === 1) {
-      if (args[0] === 'all') {
-        _runner.startAll(system, cb)
-      } else {
-        _runner.start(system, args[0], cb)
-      }
+      if (args[0] === 'all') { _runner.startAll(system, cb) } else
+      if (isGroup(args))     { startGroup(args, system, cb) } else
+      { _runner.start(system, args[0], cb) }
     } else {
-      cb('usage: start <process> | all')
-    }
+      cb('usage: start <process> | all')}
   }
+
+
+  var stopProcess = function (args, system, cb) {
+    if (args.length === 1) {
+      if (args[0] === 'all') { _runner.stopAll(system, cb) } else
+      if (isGroup(args))     { stopGroup(args, system, cb) } else
+      { _runner.stop(system, args[0], cb)}
+    } else {
+      cb('usage: stop <process> | all')}
+  }
+
+
+
+function restartGroup(args, system, cb){
+   console.log('restartGroups')
+  if (isGroup(args))  {
+       stopGroup(args, system, callbackWhenDone)
+       function callbackWhenDone(){
+       startGroup(args, system, cb)}
+     }
+}
+
+
 
 
   var restartProcess = function (args, system, cb) {
     if (args.length === 1) {
-      if (_runner.isProcessRunning(system, args[0])) {
-        _runner.stop(system, args[0], function () {
-          _runner.start(system, args[0], cb)
-        })
-      } else {
-        cb('process not running!')
-      }
-    } else {
+        if (isGroup(args)){restartGroup(args, system, cb)}
+        else
+          if (_runner.isProcessRunning(system, args[0])) {
+            _runner.stop(system, args[0], function () {
+              _runner.start(system, args[0], cb)
+            })
+          }
+          else {cb('process not running!')
+          }
+     } else {
       cb('usage: restart <process>')
     }
   }
+
+
+
 
 
   var debugProcess = function (args, system, cb) {
@@ -135,8 +170,25 @@ module.exports = function () {
   }
 
 
+  function watchGroup(args, system, cb){
+    console.log('watchgroup')
+    if (args[0] === 'def') {
+      for(var i=0;i<default_group.length;i++){
+        _runner.watch(system, default_group[i], cb)
+      }
+    } else
+    if(args[0] === 'crit'){
+      for( var i=0;i<critical_group.length;i++){
+        _runner.watch(system, critical_group[i], cb)
+      }
+    }
+
+}
+
   var watchProcess = function (args, system, cb) {
     if (args.length === 1) {
+      if(isGroup){watchGroup(args, system, cb)}
+      else
       if (args[0] === 'all') {
         _runner.watchAll(system, cb)
       } else {
@@ -148,8 +200,32 @@ module.exports = function () {
   }
 
 
+
+
+
+
+  function unwatchGroup(args, system, cb){
+    console.log('watchgroup')
+    if (args[0] === 'def') {
+      for(var i=0;i<default_group.length;i++){
+        _runner.unwatch(system, default_group[i], cb)
+      }
+    } else
+    if(args[0] === 'crit'){
+      for( var i=0;i<critical_group.length;i++){
+        _runner.unwatch(system, critical_group[i], cb)
+      }
+    }
+
+}
+
+
+
+
   var unwatchProcess = function (args, system, cb) {
     if (args.length === 1) {
+      if(isGroup(args)){unwatchGroup(args, system, cb)}
+      else
       if (args[0] === 'all') {
         _runner.unwatchAll(system, cb)
       } else {
@@ -161,8 +237,11 @@ module.exports = function () {
   }
 
 
+
   var tailProcess = function (args, system, cb) {
     if (args.length === 1) {
+      if(isGroup(args)){tailGroup(args, system, cb)}
+      else
       if (args[0] === 'all') {
         _runner.tailAll(system, cb)
       } else {
@@ -176,6 +255,7 @@ module.exports = function () {
 
   var untailProcess = function (args, system, cb) {
     if (args.length === 1) {
+      if(isGroup(args)){unTailGroup(args, system, cb)}
       if (args[0] === 'all') {
         _runner.untailAll(system, cb)
       } else {
@@ -187,10 +267,52 @@ module.exports = function () {
   }
 
 
+
+
+  function tailGroup(args, system, cb){
+    console.log('tailgroup')
+    if (args[0] === 'def') {
+      for(var i=0;i<default_group.length;i++){
+        _runner.tail(system, default_group[i], cb)
+      }
+    } else
+    if(args[0] === 'crit'){
+      for( var i=0;i<critical_group.length;i++){
+        _runner.tail(system, critical_group[i], cb)
+      }
+    }
+}
+
+
+
+
+function unTailGroup(args, system, cb){
+  console.log('tailgroup')
+  if (args[0] === 'def') {
+    for(var i=0;i<default_group.length;i++){
+      _runner.untail(system, default_group[i], cb)
+    }
+  } else
+  if(args[0] === 'crit'){
+    for( var i=0;i<critical_group.length;i++){
+      _runner.untail(system, critical_group[i], cb)
+    }
+  }
+}
+
+
+
+
+
+
+
   var grepLogs = function (args, system, cb) {
     if (args.length === 1) {
       _runner.grepAll(system, args[0], cb)
     } else if (args.length === 2) {
+      if(isGroup(args)){
+        grepGroup(args, system, cb)}
+      else
       if (args[1] === 'all') {
         _runner.grepAll(system, args[0], cb)
       } else {
@@ -202,8 +324,29 @@ module.exports = function () {
   }
 
 
+
+
+
+  function grepGroup(args, system, cb){
+    if (args[1] === 'def') {
+      for(var i=0;i<default_group.length;i++){
+        _runner.grep(system, default_group[i], args[0],  cb)
+      }
+    } else
+    if(args[1] === 'crit'){
+      for( var i=0;i<critical_group.length;i++){
+        _runner.grep(system, critical_group[i], args[0], cb)
+      }
+    }
+  }
+
+
+
+
   var pullRepositories = function (args, system, cb) {
     if (args.length === 1) {
+      if(isGroup(args)){pullGroupRepositories(args, system, cb)
+      }else
       if (args[0] === 'all') {
         _runner.pullAll(system, cb)
       } else {
@@ -214,31 +357,91 @@ module.exports = function () {
     }
   }
 
+function pullGroupRepositories(args, system, cb) {
+  if (args[0] === 'def') {
+    for(var i=0;i<default_group.length;i++){
+      _runner.pull(system, default_group[i], cb)
+    }
+  } else
+  if(args[0] === 'crit'){
+    for( var i=0;i<critical_group.length;i++){
+      _runner.pull(system, critical_group[i], cb)
+    }
+  }
+}
+
+
+
+
+
+
 
   var testRepositories = function (args, system, cb) {
     if (args.length === 1) {
+      if(isGroup(args)){testGroupRepositories(args, system, cb)
+      }else{
       if (args[0] === 'all') {
         _runner.testAll(system, cb)
       } else {
         _runner.test(system, args[0], cb)
       }
-    } else {
+      }
+    }else {
       cb('usage: test <process> | all')
     }
   }
 
 
+  function testGroupRepositories(args, system, cb) {
+    if (args[0] === 'def') {
+      for(var i=0;i<default_group.length;i++){
+        _runner.test(system, default_group[i], cb)
+      }
+    } else
+    if(args[0] === 'crit'){
+      for( var i=0;i<critical_group.length;i++){
+        _runner.test(system, critical_group[i], cb)
+      }
+    }
+  }
+
+
+
+
+
   var statRepositories = function (args, system, cb) {
     if (args.length === 1) {
+      if(isGroup(args)){statGroupRepositories(args, system, cb)
+      }else{
       if (args[0] === 'all') {
         _runner.statAll(system, cb)
       } else {
         _runner.stat(system, args[0], cb)
       }
-    } else {
+    }
+    }else {
       cb('usage: stat <process> | all')
     }
   }
+
+
+
+
+
+  function statGroupRepositories(args, system, cb) {
+    if (args[0] === 'def') {
+      for(var i=0;i<default_group.length;i++){
+        _runner.stat(system, default_group[i], cb)
+      }
+    } else
+    if(args[0] === 'crit'){
+      for( var i=0;i<critical_group.length;i++){
+        _runner.stat(system, critical_group[i], cb)
+      }
+    }
+  }
+
+
 
 
   var printZone = function (args, system, cb) {
@@ -284,17 +487,71 @@ module.exports = function () {
   }
 
 
+
+  var startGroup = function (args, system, cb) {
+      if (args[0] === 'def') {
+        for(var i=0;i<default_group.length;i++){
+          _runner.start(system, default_group[i], cb)
+        }
+      } else
+      if(args[0] === 'crit'){
+        for( var i=0;i<critical_group.length;i++){
+          _runner.start(system, critical_group[i], cb)
+        }
+      }
+     else {
+      console.info('Incorrect group name. Groups are def and crit. usage: start <group> ')
+      }
+
+
+    }
+
+  var stopGroup = function (args, system, cb) {
+      if (args[0] === 'def') {
+        console.log('stopping ' +args[0]+' group')
+        for(var i=0;i<default_group.length;i++){
+             _runner.stop(system, default_group[i], cb)
+        }
+      } else
+      if(args[0] === 'crit'){
+        console.log('stopping ' +args[0]+' group')
+        for(var i=0;i<critical_group.length;i++){
+              _runner.stop(system, critical_group[i], cb)
+          }
+        }
+  }
+
+
+
+
+
+  function showGroups(){
+    console.log('')
+    console.log('Critical Group: ')
+    console.log('--------------')
+    console.log(''+critical_group.join("\n"))
+    console.log('----------')
+    console.log('')
+
+    console.log('Default Group :')
+    console.log('--------------')
+    console.log(''+default_group.join("\n"))
+    console.log('----------')
+    console.log('')
+ }
+
   var _commands = {
     ps: {action: psList, description: 'list managed processes and containers, usage: ps'},
     info: {action: showInfo, sub: [], description: 'show process and container environment information, usage: info <process> [full]'},
-    start: {action: startProcess, sub: [], description: 'start processes, usage: start<process> | all'},
-    stop: {action: stopProcess, sub: [], description: 'stop processes, usage: stop <process> | all'},
-    restart: {action: restartProcess, sub: [], description: 'restart a single process, usage: restart <process>'},
+    start: {action: startProcess, sub: [], description: 'start processes or group, usage: start <process> | <group> | all'},
+    stop: {action: stopProcess, sub: [], description: 'stop process or group, usage: stop <process> | <group> | all \n groups are [def] or [crit]'},
+    show: {action: showGroups, sub:[], description: 'Show groups. usage: show'},
+    restart: {action: restartProcess, sub: [], description: 'restart a process or group, usage: restart <process> | <group>'},
     debug: {action: debugProcess, sub: [], description: 'start a process in debug mode, usage: debug <process>'},
-    watch: {action: watchProcess, sub: [], description: 'turn on watching for a process, usage: watch <process> | all'},
-    unwatch: {action: unwatchProcess, sub: [], description: 'turn off watching for a process, usage: unwatch <process> | all'},
-    tail: {action: tailProcess, sub: [], description: 'tail output for all processes, usage: tail <process> | all'},
-    untail: {action: untailProcess, sub: [], description: 'stop tailing output for a specific processes, usage: untail <process> | all'},
+    watch: {action: watchProcess, sub: [], description: 'turn on watching for a process or group, usage: watch <process> | all'},
+    unwatch: {action: unwatchProcess, sub: [], description: 'turn off watching for a process or group, usage: unwatch <process> | all'},
+    tail: {action: tailProcess, sub: [], description: 'tail output for processes or group, usage: tail <process> | all'},
+    untail: {action: untailProcess, sub: [], description: 'stop tailing output for a specific processes or group, usage: untail <process> | all'},
     grep: {action: grepLogs, sub: [], description: 'searches logs for specific process or all logs, usage: grep <string> [<process>]'},
     zone: {action: printZone, description: 'displays dns zone information if enabled'},
     pull: {action: pullRepositories, sub: [], description: 'performs a git pull command for all artifacts with a defined repository_url setting,\n usage: pull <process> | all'},
@@ -308,13 +565,14 @@ module.exports = function () {
   function init (system, runner, dns) {
     _runner = runner
     _dns = dns
-
+    groups(system)
     var sub = Object.keys(system.topology.containers)
     Object.keys(_commands).forEach(function (key) {
       if (_commands[key].sub) {
         _commands[key].sub = sub
       }
     })
+
     return _commands
   }
 
