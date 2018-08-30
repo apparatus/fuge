@@ -25,8 +25,8 @@ module.exports = function () {
   var tableChars = { 'top': '', 'top-mid': '', 'top-left': '', 'top-right': '', 'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '', 'left': '', 'left-mid': '', 'mid': '', 'mid-mid': '', 'right': '', 'right-mid': '', 'middle': '' }
   var tableStyle = { 'padding-left': 0, 'padding-right': 0 }
 
-  var default_group=[]
-  var critical_group=[]
+  var defaultGroupArray=[]
+  var namedGroupArray=[]
 
   var psList = function (args, system, cb) {
     if (args.length > 0) {
@@ -85,29 +85,44 @@ module.exports = function () {
   }
 
 
-// fill array with process group values. critical if critical, or else default
   function groups (system){
      _.each(system.topology.containers, function (container) {
-    if (container.group === 'critical'){
-      critical_group.push(container.name);
+      if(!container.group){
+         container.group='default'
       }
-      else{
-        default_group.push(container.name)
-    }
-  })
+     })
   }
 
-  function isGroup(args){
-    if (args[0] === 'def'||  args[1] === 'def')  { return true}  else
-    if (args[0] === 'crit'|| args[1] === 'crit') { return true}  else
-      return false
+
+  function isGroup(args, system){
+    var isgroup = false
+    _.each(system.topology.containers, function (container) {
+      if(args[0]===container.group){
+        isgroup=true
+      }
+    })
+    if (isgroup === true){
+        return true}
+  }
+
+
+  //separate isGroup function for grep as it takes the second argument as the group
+  function isGrepGroup(args, system){
+    var isgroup = false
+    _.each(system.topology.containers, function (container) {
+      if(args[1]===container.group){
+        isgroup=true
+      }
+    })
+    if (isgroup === true){
+        return true}
   }
 
 
   var startProcess = function (args, system, cb) {
     if (args.length === 1) {
       if (args[0] === 'all') { _runner.startAll(system, cb) } else
-      if (isGroup(args))     { startGroup(args, system, cb) } else
+      if (isGroup(args, system))     { startGroup(args, system, cb) } else
       { _runner.start(system, args[0], cb) }
     } else {
       cb('usage: start <process> | all')}
@@ -117,7 +132,7 @@ module.exports = function () {
   var stopProcess = function (args, system, cb) {
     if (args.length === 1) {
       if (args[0] === 'all') { _runner.stopAll(system, cb) } else
-      if (isGroup(args))     { stopGroup(args, system, cb) } else
+      if (isGroup(args, system))     { stopGroup(args, system, cb) } else
       { _runner.stop(system, args[0], cb)}
     } else {
       cb('usage: stop <process> | all')}
@@ -125,28 +140,16 @@ module.exports = function () {
 
 
 
-function restartGroup(args, system, cb){
-   console.log('restartGroups')
-  if (isGroup(args))  {
-       stopGroup(args, system, callbackWhenDone)
-       function callbackWhenDone(){
-       startGroup(args, system, cb)}
-     }
-}
-
-
-
-
   var restartProcess = function (args, system, cb) {
-    if (args.length === 1) {
-        if (isGroup(args)){restartGroup(args, system, cb)}
-        else
-          if (_runner.isProcessRunning(system, args[0])) {
-            _runner.stop(system, args[0], function () {
-              _runner.start(system, args[0], cb)
-            })
-          }
-          else {cb('process not running!')
+       if (args.length === 1) {
+        if (isGroup(args, system)){
+          restartGroup(args, system, cb)
+        }
+        else if (_runner.isProcessRunning(system, args[0])) {
+          _runner.stop(system, args[0], function () {
+            _runner.start(system, args[0], cb)
+          })
+        } else {cb('process not running!')
           }
      } else {
       cb('usage: restart <process>')
@@ -154,6 +157,19 @@ function restartGroup(args, system, cb){
   }
 
 
+
+  function restartGroup(args, system, cb){
+    _.each(system.topology.containers, function(container){
+      if (container.group===args[0]){
+        if (_runner.isProcessRunning(system, container.name)) {
+          _runner.stop(system, container.name, function () {
+            _runner.start(system, container.name, cb)
+            })
+        } else {cb('process not running!') }
+
+      }
+    })
+  }
 
 
 
@@ -170,24 +186,9 @@ function restartGroup(args, system, cb){
   }
 
 
-  function watchGroup(args, system, cb){
-    console.log('watchgroup')
-    if (args[0] === 'def') {
-      for(var i=0;i<default_group.length;i++){
-        _runner.watch(system, default_group[i], cb)
-      }
-    } else
-    if(args[0] === 'crit'){
-      for( var i=0;i<critical_group.length;i++){
-        _runner.watch(system, critical_group[i], cb)
-      }
-    }
-
-}
-
   var watchProcess = function (args, system, cb) {
     if (args.length === 1) {
-      if(isGroup){watchGroup(args, system, cb)}
+      if (isGroup(args, system)) { watchGroup(args, system, cb) }
       else
       if (args[0] === 'all') {
         _runner.watchAll(system, cb)
@@ -200,31 +201,9 @@ function restartGroup(args, system, cb){
   }
 
 
-
-
-
-
-  function unwatchGroup(args, system, cb){
-    console.log('watchgroup')
-    if (args[0] === 'def') {
-      for(var i=0;i<default_group.length;i++){
-        _runner.unwatch(system, default_group[i], cb)
-      }
-    } else
-    if(args[0] === 'crit'){
-      for( var i=0;i<critical_group.length;i++){
-        _runner.unwatch(system, critical_group[i], cb)
-      }
-    }
-
-}
-
-
-
-
   var unwatchProcess = function (args, system, cb) {
     if (args.length === 1) {
-      if(isGroup(args)){unwatchGroup(args, system, cb)}
+      if (isGroup(args, system)) { unwatchGroup(args, system, cb) }
       else
       if (args[0] === 'all') {
         _runner.unwatchAll(system, cb)
@@ -237,80 +216,74 @@ function restartGroup(args, system, cb){
   }
 
 
+  function watchGroup(args, system, cb){
+    _.each(system.topology.containers, function(container){
+      if (container.group===args[0]){
+         _runner.watch(system, container.name, cb)
+      }
+    })
+  }
+
+
+  function unwatchGroup(args, system, cb){
+     _.each(system.topology.containers, function(container){
+        if (container.group===args[0]){
+           _runner.unwatch(system, container.name, cb)
+        }
+      })
+    }
+
 
   var tailProcess = function (args, system, cb) {
     if (args.length === 1) {
-      if(isGroup(args)){tailGroup(args, system, cb)}
+      if(isGroup(args, system)){tailGroup(args, system, cb)}
       else
       if (args[0] === 'all') {
-        _runner.tailAll(system, cb)
-      } else {
+        _runner.tailAll(system, cb) }
+      else {
         _runner.tail(system, args[0], cb)
       }
-    } else {
-      cb('usage: tail <process> | all')
-    }
+    } else cb('usage: tail <process> | <group> | all')
   }
 
 
   var untailProcess = function (args, system, cb) {
     if (args.length === 1) {
-      if(isGroup(args)){unTailGroup(args, system, cb)}
+      if(isGroup(args, system)){untailGroup(args, system, cb)}
       if (args[0] === 'all') {
         _runner.untailAll(system, cb)
       } else {
         _runner.untail(system, args[0], cb)
       }
     } else {
-      cb('usage: untail <process> | all')
+      cb('usage: untail <process> | <group> | all')
     }
   }
-
-
 
 
   function tailGroup(args, system, cb){
-    console.log('tailgroup')
-    if (args[0] === 'def') {
-      for(var i=0;i<default_group.length;i++){
-        _runner.tail(system, default_group[i], cb)
+    _.each(system.topology.containers, function(container){
+      if (container.group===args[0]){
+         _runner.tail(system, container.name, cb)
       }
-    } else
-    if(args[0] === 'crit'){
-      for( var i=0;i<critical_group.length;i++){
-        _runner.tail(system, critical_group[i], cb)
-      }
-    }
-}
-
-
-
-
-function unTailGroup(args, system, cb){
-  console.log('tailgroup')
-  if (args[0] === 'def') {
-    for(var i=0;i<default_group.length;i++){
-      _runner.untail(system, default_group[i], cb)
-    }
-  } else
-  if(args[0] === 'crit'){
-    for( var i=0;i<critical_group.length;i++){
-      _runner.untail(system, critical_group[i], cb)
-    }
+    })
   }
-}
 
 
-
-
-
+  function untailGroup(args, system, cb){
+    _.each(system.topology.containers, function(container){
+      if (container.group===args[0]){
+         _runner.untail(system, container.name, cb)
+      }
+    })
+  }
 
 
   var grepLogs = function (args, system, cb) {
     if (args.length === 1) {
       _runner.grepAll(system, args[0], cb)
     } else if (args.length === 2) {
-      if(isGroup(args)){
+      if(isGrepGroup(args, system)){
         grepGroup(args, system, cb)}
       else
       if (args[1] === 'all') {
@@ -319,33 +292,23 @@ function unTailGroup(args, system, cb){
         _runner.grep(system, args[1], args[0], cb)
       }
     } else {
-      cb('usage: grep <string> [<process> | all]')
+      cb('usage: grep <string> [<process> | <group> | all]')
     }
   }
-
-
-
 
 
   function grepGroup(args, system, cb){
-    if (args[1] === 'def') {
-      for(var i=0;i<default_group.length;i++){
-        _runner.grep(system, default_group[i], args[0],  cb)
+    _.each(system.topology.containers, function(container){
+      if (container.group===args[1]){
+         _runner.grep(system, container.name, args[0], cb)
       }
-    } else
-    if(args[1] === 'crit'){
-      for( var i=0;i<critical_group.length;i++){
-        _runner.grep(system, critical_group[i], args[0], cb)
-      }
-    }
+    })
   }
-
-
 
 
   var pullRepositories = function (args, system, cb) {
     if (args.length === 1) {
-      if(isGroup(args)){pullGroupRepositories(args, system, cb)
+      if(isGroup(args, system)){pullGroupRepositories(args, system, cb)
       }else
       if (args[0] === 'all') {
         _runner.pullAll(system, cb)
@@ -353,32 +316,23 @@ function unTailGroup(args, system, cb){
         _runner.pull(system, args[0], cb)
       }
     } else {
-      cb('usage: pull <process> | all')
+      cb('usage: pull <process> | <group> | all')
     }
   }
 
-function pullGroupRepositories(args, system, cb) {
-  if (args[0] === 'def') {
-    for(var i=0;i<default_group.length;i++){
-      _runner.pull(system, default_group[i], cb)
-    }
-  } else
-  if(args[0] === 'crit'){
-    for( var i=0;i<critical_group.length;i++){
-      _runner.pull(system, critical_group[i], cb)
-    }
+
+  function pullGroupRepositories(args, system, cb) {
+    _.each(system.topology.containers, function(container){
+      if (container.group===args[0]){
+         _runner.pull(system, container.name, cb)
+      }
+    })
   }
-}
-
-
-
-
-
 
 
   var testRepositories = function (args, system, cb) {
     if (args.length === 1) {
-      if(isGroup(args)){testGroupRepositories(args, system, cb)
+      if(isGroup(args, system)){testGroupRepositories(args, system, cb)
       }else{
       if (args[0] === 'all') {
         _runner.testAll(system, cb)
@@ -386,62 +340,40 @@ function pullGroupRepositories(args, system, cb) {
         _runner.test(system, args[0], cb)
       }
       }
-    }else {
-      cb('usage: test <process> | all')
-    }
+    }else  cb('usage: test <process> | all')
   }
 
 
   function testGroupRepositories(args, system, cb) {
-    if (args[0] === 'def') {
-      for(var i=0;i<default_group.length;i++){
-        _runner.test(system, default_group[i], cb)
+    _.each(system.topology.containers, function(container){
+      if (container.group===args[0]){
+         _runner.test(system, container.name, cb)
       }
-    } else
-    if(args[0] === 'crit'){
-      for( var i=0;i<critical_group.length;i++){
-        _runner.test(system, critical_group[i], cb)
-      }
-    }
+    })
   }
-
-
-
 
 
   var statRepositories = function (args, system, cb) {
     if (args.length === 1) {
-      if(isGroup(args)){statGroupRepositories(args, system, cb)
+      if(isGroup(args, system)){statGroupRepositories(args, system, cb)
       }else{
-      if (args[0] === 'all') {
-        _runner.statAll(system, cb)
-      } else {
-        _runner.stat(system, args[0], cb)
+        if (args[0] === 'all') {
+          _runner.statAll(system, cb)
+        } else {
+          _runner.stat(system, args[0], cb)
+        }
       }
-    }
-    }else {
-      cb('usage: stat <process> | all')
-    }
+    }else   cb('usage: stat <process> | all')
   }
-
-
-
 
 
   function statGroupRepositories(args, system, cb) {
-    if (args[0] === 'def') {
-      for(var i=0;i<default_group.length;i++){
-        _runner.stat(system, default_group[i], cb)
+    _.each(system.topology.containers, function(container){
+      if (container.group===args[0]){
+         _runner.stat(system, container.name, cb)
       }
-    } else
-    if(args[0] === 'crit'){
-      for( var i=0;i<critical_group.length;i++){
-        _runner.stat(system, critical_group[i], cb)
-      }
-    }
+    })
   }
-
-
 
 
   var printZone = function (args, system, cb) {
@@ -487,41 +419,22 @@ function pullGroupRepositories(args, system, cb) {
   }
 
 
-
   var startGroup = function (args, system, cb) {
-      if (args[0] === 'def') {
-        for(var i=0;i<default_group.length;i++){
-          _runner.start(system, default_group[i], cb)
-        }
-      } else
-      if(args[0] === 'crit'){
-        for( var i=0;i<critical_group.length;i++){
-          _runner.start(system, critical_group[i], cb)
-        }
+        _.each(system.topology.containers, function(container){
+      if (container.group===args[0]){
+         _runner.start(system, container.name, cb)
       }
-     else {
-      console.info('Incorrect group name. Groups are def and crit. usage: start <group> ')
-      }
-
-
-    }
-
-  var stopGroup = function (args, system, cb) {
-      if (args[0] === 'def') {
-        console.log('stopping ' +args[0]+' group')
-        for(var i=0;i<default_group.length;i++){
-             _runner.stop(system, default_group[i], cb)
-        }
-      } else
-      if(args[0] === 'crit'){
-        console.log('stopping ' +args[0]+' group')
-        for(var i=0;i<critical_group.length;i++){
-              _runner.stop(system, critical_group[i], cb)
-          }
-        }
+    })
   }
 
 
+  var stopGroup = function (args, system, cb) {
+    _.each(system.topology.containers, function(container){
+      if (container.group===args[0]){
+         _runner.stop(system, container.name, cb)
+      }
+    })
+  }
 
 
 
@@ -529,13 +442,13 @@ function pullGroupRepositories(args, system, cb) {
     console.log('')
     console.log('Critical Group: ')
     console.log('--------------')
-    console.log(''+critical_group.join("\n"))
+    console.log(''+namedGroupArray.join("\n"))
     console.log('----------')
     console.log('')
 
     console.log('Default Group :')
     console.log('--------------')
-    console.log(''+default_group.join("\n"))
+    console.log(''+defaultGroupArray.join("\n"))
     console.log('----------')
     console.log('')
  }
