@@ -47,13 +47,22 @@ module.exports = function () {
             'running'.green,
             container.monitor ? 'yes'.green : 'no'.red,
             container.tail ? 'yes'.green : 'no'.red])
-        } else {
-          table.push([container.name.red,
-            container.type.red,
-            container.group.red,
-            'stopped'.red,
-            container.monitor ? 'yes'.green : 'no'.red,
-            container.tail ? 'yes'.green : 'no'.red])
+        } else
+        if (container.path===null){
+          table.push([container.name.gray,
+          container.type.gray,
+          container.group.gray,
+          'disabled'.gray,
+          container.monitor ? 'yes'.gray : 'no'.gray,
+          container.tail ? 'yes'.gray : 'no'.gray])
+        } else
+        {
+        table.push([container.name.red,
+          container.type.red,
+          container.group.red,
+          'stopped'.red,
+          container.monitor ? 'yes'.green : 'no'.red,
+          container.tail ? 'yes'.green : 'no'.red])
         }
       }
     })
@@ -472,9 +481,18 @@ module.exports = function () {
   }
 
 
+  function isDisabled (system){
+    _.each(system.topology.containers, function (container) {
+      if(container.path===null){
+        container.status='disabled'
+      }
+    })
+  }
+
   function init (system, runner, dns) {
     _runner = runner
     _dns = dns
+    isDisabled(system)
     groups(system)
     var sub = Object.keys(system.topology.containers)
     Object.keys(_commands).forEach(function (key) {
