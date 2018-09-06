@@ -41,7 +41,7 @@
   },
   "scripts": {
     "lint": "echo 'linting...' && spacey-standard | snazzy",
-    "test": "node 'test/basic.test.js'",
+    "test": "node test/basic.test.js",
     "commit-check": "npm run test && npm run lint",
     "coverage": "istanbul cover test/*.test.js && open ./coverage/lcov-report/index.html"
   },
