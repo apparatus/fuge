@@ -20,13 +20,15 @@ var assert = require('assert')
 
 var scenarios = {
   ps: {cmds: ['ps'], expect: [/runme.*node.*stopped.*no.*yes/g, /runmetoo.*process.*stopped.*no.*yes/g]},
-  info: {cmds: ['info runme', 'info runmetoo full'], expect: [/node runme\.js/g, /RUNME_SERVICE_PORT=8000/g]},
+  info: {cmds: ['info runme', 'info runmetoo full'], expect: [/node runme/g, /RUNME_SERVICE_PORT=8000/g]},
   help: {cmds: ['help'], expect: [/turn on watching for a process/g]},
   zone: {cmds: ['zone'], expect: [/SRV.*_main\._tcp\.runme.*runme.*8000/g]},
   tail: {cmds: ['untail all', 'tail all', 'untail runmetoo', 'tail runme', 'ps'], expect: [/runme.*node.*stopped.*no.*yes/g, /runmetoo.*process.*stopped.*no.*no/g]},
   startStop: {cmds: ['start runme', 'ps', 'stop runme'], expect: [/runme.*node.*running.*no.*yes/g, /runmetoo.*process.*stopped.*no.*no/g]},
   startStopAll: {cmds: ['start all', 'ps', 'stop all'], expect: [/runme.*node.*running.*no.*yes/g, /runmetoo.*process.*running.*no.*no/g], delay: 1000},
   restart: {cmds: ['start runme', 'restart runme', 'ps', 'stop runme'], expect: [/runme.*node.*running.*no.*yes/g], delay: 1000},
+  startStopGroup: {cmds: ['start default', 'ps', 'stop default'], expect: [/runme.*node.*running.*no.*yes/g, /runmetoo.*process.*running.*no.*no/g], delay: 1000},
+  restartGroup: {cmds: ['start default', 'restart default', 'ps', 'stop default'], expect: [/runme.*node.*running.*no.*yes/g], delay: 1000},
   grep: {cmds: ['grep Server runme'], expect: [/Server running at http/g]},
   grepAll: {cmds: ['grep Server'], expect: [/Server running at http/g]},
   debug: {cmds: ['debug runme', 'ps', 'stop runme'], expect: [/runme.*node.*running.*no.*yes/g, /runmetoo.*process.*stopped.*no.*no/g], delay: 1000},

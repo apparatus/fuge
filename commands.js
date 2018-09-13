@@ -14,9 +14,13 @@
 
 'use strict'
 
+var fs = require('fs')
+var yaml = require('js-yaml')
+var path = require('path')
 var _ = require('lodash')
 var CliTable = require('cli-table')
 require('colors')
+
 
 module.exports = function () {
   var _runner = null
@@ -452,12 +456,83 @@ module.exports = function () {
     test: {action: testRepositories, sub: [], description: 'performs a test command for all artifacts with a defined test setting,\n usage: test <process> | <group> | all'},
     status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | <group> | all'},
     apply: {action: applyCommand, sub: [], description: 'apply a shell command to all processes'},
-    s: {action: setEnvVariable,
-      sub: [
-      //  'minusservice','type', 'blah'
-      ],
-      description: 'Change a config value in memory. usage setval <process> <variable> <value> '},
+    re: {action: editConfig, sub: [], description: 'reload process envs after config change'},
+    s: {action: setEnvVariable, sub: [], description: 'Change a config value in memory. usage setval <process> <variable> <value> '},
+
     help: {action: showHelp, description: 'show help on commands'}
+  }
+
+// find service name in yml file, compare its values, reload these values
+
+
+// function editConfig (args, system, cb) {
+//   console.warn('args = '+ args)
+//   edit(args, system, cb)
+// }
+  var currentYmlConfig
+  var newYmlConfig
+  var yamlPath = path.resolve(path.join(process.cwd(), 'fuge\\fuge.yml'))
+  var oldProps = ''
+  var newProps = ''
+
+  function initConfig () {
+    try {
+      currentYmlConfig = yaml.safeLoad(fs.readFileSync(yamlPath, 'utf8'))
+      console.warn('\nINIT.. yml= ' + Object.entries(currentYmlConfig))
+    } catch (ex) {
+      console.log(ex)
+      // return cb(ex.message)
+    }
+  }
+
+
+// if a value has changed
+// set new yml as old yml
+// get the process name
+// restart that process
+
+
+  function editConfig (args, system, cb) {
+    oldProps = getProcessProperties(args, currentYmlConfig)
+
+    try {
+      newYmlConfig = yaml.safeLoad(fs.readFileSync(yamlPath, 'utf8'))
+    } catch (ex) {
+      console.log(ex)
+      return cb(ex.message)
+    }
+
+    newProps = getProcessProperties(args, newYmlConfig)
+
+    if (JSON.stringify(oldProps) === JSON.stringify(newProps)) {
+      console.log('no change!!!!!!!!!!!')
+    } else {
+      console.log('......yaml file changed')
+      currentYmlConfig = newYmlConfig
+
+      if (_runner.isProcessRunning(system, args[0])) {
+        _runner.stop(system, args[0], function () {
+          _runner.start(system, args[0], cb)
+        })
+      } else {
+        cb('process not running!')
+      }
+
+    }
+    console.log(' oldProps== ' + oldProps)
+    console.log(' newProps== ' + newProps)
+  }
+
+
+
+  var getProcessProperties = function (args, ymlConfig) {
+    var values
+    _.each(Object.keys(ymlConfig), function (process) {
+      if (process === args[0]) {
+        values = Object.entries(ymlConfig[process])
+      }
+    })
+    return values
   }
 
 
@@ -474,7 +549,7 @@ module.exports = function () {
 
           _.each(Object.keys(container), function (val) {
             value = container[val]
-            if (typeof value === 'object') {
+            if (typeof value === 'object' && value !== null) {
               console.log(' ' + val + ' = ' + Object.entries(value))
             } else {
               console.log(' ' + val + ' = ' + value)
@@ -519,13 +594,13 @@ module.exports = function () {
 
 
               // to do here: compare and reload config file
-             if (_runner.isProcessRunning(system, args[0])) {
+              if (_runner.isProcessRunning(system, args[0])) {
                 _runner.stop(system, args[0], function () {
                   _runner.start(system, args[0], cb)
                 })
-             } else {
+              } else {
                 cb('process not running!')
-             }
+              }
             }
           })
         }
@@ -545,8 +620,10 @@ module.exports = function () {
   }
 
   function init (system, runner, dns) {
+    initConfig()
     _runner = runner
     _dns = dns
+
     isDisabled(system)
 
     var sub = Object.keys(system.topology.containers)
