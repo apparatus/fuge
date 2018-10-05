@@ -53,7 +53,7 @@ var runCommand = function (command) {
 
 
 var runShell = function (args) {
-  console.log('compiling...')
+  console.log('compiling....')
   util.compile(args, function (err, system) {
     if (err) { return console.error(err) }
     shell.run(system)
@@ -74,6 +74,7 @@ program.register('shell', runShell)
 function start (argv) {
   var remaining = program.parse(argv)
   if (remaining) { console.error('No matching command.') }
+
 }
 
 

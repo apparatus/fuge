@@ -18,7 +18,9 @@ var fs = require('fs')
 var yaml = require('js-yaml')
 var path = require('path')
 var _ = require('lodash')
+var util = require('./util')()
 var CliTable = require('cli-table')
+var fgcf = require('fuge-config/index')()
 require('colors')
 
 
@@ -36,6 +38,8 @@ module.exports = function () {
     }
 
     var table = new CliTable({chars: tableChars, style: tableStyle, head: ['name'.white, 'type'.white, 'group'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15, 15]})
+
+
 
     _.each(system.topology.containers, function (container) {
       if (!container.group) { container.group = 'default' }
@@ -66,6 +70,7 @@ module.exports = function () {
             container.tail ? 'yes'.green : 'no'.red])
         }
       }
+
     })
     if (_dns) {
       table.push(['dns'.green,
@@ -77,6 +82,7 @@ module.exports = function () {
     }
     console.log(table.toString())
     cb()
+
   }
 
 
@@ -457,6 +463,7 @@ module.exports = function () {
     status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | <group> | all'},
     apply: {action: applyCommand, sub: [], description: 'apply a shell command to all processes'},
     re: {action: editConfig, sub: [], description: 'reload process envs after config change'},
+    rel: {action: reload, sub: [], description: 'reload process envs after config change'},
     s: {action: setEnvVariable, sub: [], description: 'Change a config value in memory. usage setval <process> <variable> <value> '},
 
     help: {action: showHelp, description: 'show help on commands'}
@@ -488,43 +495,110 @@ module.exports = function () {
 
 // if a value has changed
 // set new yml as old yml
+  // reload new yml into memory
 // get the process name
 // restart that process
 
 
   function editConfig (args, system, cb) {
     oldProps = getProcessProperties(args, currentYmlConfig)
-
     try {
       newYmlConfig = yaml.safeLoad(fs.readFileSync(yamlPath, 'utf8'))
     } catch (ex) {
       console.log(ex)
       return cb(ex.message)
     }
-
     newProps = getProcessProperties(args, newYmlConfig)
 
+    if (ymlChanged(oldProps, newProps)) {
+      setNewVars (currentYmlConfig, system)
+      recompile(currentYmlConfig, args, system, cb)
+      restartProcess(system, args)
+    }
+
+    console.log(' oldProps== ' + oldProps)
+    console.log(' newProps== ' + newProps)
+
+  }
+
+
+
+
+
+
+  function setNewVars (currentYmlConfig, system, ) {
+
+    _.each(Object.keys(system.topology.containers), function (process) {
+      var value = system.topology.containers[val]
+      if (typeof value === 'object' && value !== null) {
+
+        console.log('vals in recopile ' + process + ' = ' + Object.entries(value))
+      } else {
+        console.log(' ' + process + ' = ' + value)
+      }
+
+
+    })
+  }
+
+
+
+
+
+  function recompile (currentYmlConfig, args, system, cb) {
+  // util or load or something envfile?
+
+  }// end
+
+
+
+
+
+
+
+
+
+
+
+
+  function restartProcess (system, args) {
+    if (_runner.isProcessRunning(system, args[0])) {
+      _runner.stop(system, args[0], function () {
+        _runner.start(system, args[0], cb)
+      })
+    } else {
+      cb('process not running!')
+    }
+  }
+
+
+
+  function ymlChanged () {
     if (JSON.stringify(oldProps) === JSON.stringify(newProps)) {
       console.log('no change!!!!!!!!!!!')
     } else {
       console.log('......yaml file changed')
       currentYmlConfig = newYmlConfig
-
-      if (_runner.isProcessRunning(system, args[0])) {
-        _runner.stop(system, args[0], function () {
-          _runner.start(system, args[0], cb)
-        })
-      } else {
-        cb('process not running!')
-      }
-
     }
-    console.log(' oldProps== ' + oldProps)
-    console.log(' newProps== ' + newProps)
+
+  }
+
+
+  function reload (ymlPat, system, cb) {
+
+
+
+
+    if (fgcf.load(yamlPath, cb)){
+    // if (fgcf.loadEnvFiles(yamlPath)){
+
+    }else console.log('not load env files!!!!!')
+
   }
 
 
 
+// get all properies of the service that was changed
   var getProcessProperties = function (args, ymlConfig) {
     var values
     _.each(Object.keys(ymlConfig), function (process) {
@@ -620,6 +694,7 @@ module.exports = function () {
   }
 
   function init (system, runner, dns) {
+    console.warn('init function in commnds')
     initConfig()
     _runner = runner
     _dns = dns

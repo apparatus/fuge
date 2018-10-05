@@ -44,23 +44,10 @@ module.exports = function () {
       cb(err, system)
     })
 
-
   }
-
   return {
     compile: compile
-    // recompile: recompile
+
   }
-
-  // var recompile= function (args, cb){
-  //   fcfg.edit(yamlPath, function (err, system) {
-  //     if (err) { return cb(err) }
-  //     system.global.log_path = logPath
-  //     cb(err, system)
-  //     }
-  //   )}
-  // }
-
-
 
 }
