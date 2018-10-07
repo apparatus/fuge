@@ -18,6 +18,17 @@ var _ = require('lodash')
 var CliTable = require('cli-table')
 require('colors')
 
+
+//mine
+
+var fs = require('fs')
+var yaml = require('js-yaml')
+var path = require('path')
+var fcfg = require('fuge-config/index')()
+var processrunner = require('fuge-runner/lib/support/processRunner')()
+
+
+
 module.exports = function () {
   var _runner = null
   var _dns = null
@@ -129,6 +140,8 @@ module.exports = function () {
 
 
   var startProcess = function (args, system, cb) {
+    console.log('\n\n SYS_TOP.. in start process ' + system.topology.containers['auditservice'].environment.SERVICE_PORT)
+    console.log('START PROC  PROCESS>ENV PORT: '+ process.env.AUDITSERVICE_SERVICE_PORT)
     if (args.length === 1) {
       if (args[0] === 'all') { _runner.startAll(system, cb) } else
       if (isGroup(args, system))     { startGroup(args, system, cb) } else
@@ -477,8 +490,236 @@ module.exports = function () {
     test: {action: testRepositories, sub: [], description: 'performs a test command for all artifacts with a defined test setting,\n usage: test <process> | <group> | all'},
     status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | <group> | all'},
     apply: {action: applyCommand, sub: [], description: 'apply a shell command to all processes'},
+    rel: {action: findChangedProcesses, sub: [], description: 'reload process envs after config change'},
+    s: {action: setEnvVariable, sub: [], description: 'Change a config value in memory. usage setval <process> <variable> <value> '},
+    y: {action: reload, sub: [], description: 'accept' },
+    n: {action: noReload, sub: [], description: 'cancel reload'  },
+
+
+
     help: {action: showHelp, description: 'show help on commands'}
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  var currentYmlConfig
+  var newYmlConfig
+  var yamlPath = path.resolve(path.join(process.cwd(), 'fuge\\fuge.yml'))
+  var changedProcesses = []
+
+
+
+
+  function noReload () {
+    console.log('no action taken')
+  }
+
+
+
+  // save the initial yml config to compare to a changed yml
+  function initConfig () {
+    try {
+      currentYmlConfig = yaml.safeLoad(fs.readFileSync(yamlPath, 'utf8'))
+    } catch (ex) {
+      console.log(ex)
+    }
+  }
+
+
+
+  // array of container names that have been changed in yml file
+  function findChangedProcesses () {
+    changedProcesses = []
+    try {
+      newYmlConfig = yaml.safeLoad(fs.readFileSync(yamlPath, 'utf8'))
+    } catch (ex) {
+      console.log(ex)
+    // return cb(ex.message)
+    }
+    _.each(Object.keys(currentYmlConfig), function (name) {
+      if (JSON.stringify(Object.values(currentYmlConfig[name])) !== JSON.stringify(Object.values(newYmlConfig[name]))) {
+        changedProcesses.push(name)
+      }
+    })
+
+    if (changedProcesses.length > 0) {
+      console.log('Changed values in:  ' + changedProcesses)
+      console.log('Do you want to save changes and reload these services? (y/n)')
+    } else {
+      console.log('No changes in yml file')
+    }
+  }
+
+
+
+
+
+
+  function exitCb (cb) {
+    return function (err, container, child, code) {
+      if (err) {
+        console.log(container.name + ' error: ' + err)
+      }
+      cb(err || null)
+    }
+  }
+
+
+
+  function reload (args, system, cb) {
+     console.log('\n\n SYS_TOP.. in LOAD ' + system.topology.containers['auditservice'].environment.SERVICE_PORT)
+      var path = []
+      path[0] = 'fuge\\fuge.yml'
+      var logPath
+      fcfg.load2(yamlPath, system, function (err, system) {
+      if (err) { return cb(err) }
+      system.global.log_path = logPath
+      cb(err, system)
+      console.log('\n\n SYS_TOP.. in LOAD ' + system.topology.containers['auditservice'].environment.SERVICE_PORT)
+      // debugger
+
+      // pRun(system, changedProcesses, cb)
+      console.log('\n\n SYS_TOP.. in LOAD SERVICE_PORT 1 ' + system.topology.containers['auditservice'].environment.SERVICE_PORT)
+      // shellExecute.run(system)
+      // var command=''
+      // shellExecute(command, system, cb)
+      // cb('done', system)
+    })
+
+    //  console.log('\n\n SYS_TOP.. AFTER LOAD SERVICE_PORT 2 ' + system.topology.containers['auditservice'].environment.SERVICE_PORT)
+    // console.log('\n\n SYS_TOP.. AFTER LOAD SERVICE_PORT 3 (after DONE) ' + system.topology.containers['auditservice'].environment.SERVICE_PORT)
+    console.log('\n\nrocess.env after LOAD IN commands: ' + process.env.SERVICE_PORT)
+    // shell.run(system)
+
+    currentYmlConfig = newYmlConfig
+  }
+
+
+
+//   about:inspect
+//   node --inspect ../../fuge/fuge.js shell fuge/fuge.yml
+
+
+
+
+
+
+
+  function pRun (system, changedProcesses, cb) {
+    _.each(system.topology.containers, function (container) {
+      if (_.includes(changedProcesses, container.name)) {
+
+        // process.env = Object.assign(process.env, container.environment)
+        // processrunner.run( 'update', container, exitCb, function(){
+        console.log('\nRELOAD after compile IMP_S_P 7 ' + container.name + ' = ' + process.env.auditservice_SERVICE_PORT)
+        // })
+
+      }
+
+    })
+
+  }
+
+
+
+   // args[0]     args[1]      args[2]       args[3]
+   // command: <process name>  <variable>  <new value>
+  function setEnvVariable (args, system, cb, command) {
+    var value
+     // show all env-vars for process
+    if (args.length === 1) {
+      _.each(system.topology.containers, function (container) {
+        if (container.name === args[0]) {
+          console.log('\nvariables in ' + container.name.yellow)
+
+          _.each(Object.keys(container), function (val) {
+            value = container[val]
+            if (typeof value === 'object' && value !== null) {
+              console.log(' ' + val + ' = ' + Object.entries(value))
+            } else {
+              console.log(' ' + val + ' = ' + value)
+            }
+          })
+        }
+      })
+
+
+      // show env-var and value for process <var>
+    } else if (args.length === 2) {
+      _.each(system.topology.containers, function (container) {
+        if (container.name === args[0]) {
+          _.each(Object.keys(container), function (envar) {
+            if (envar === args[1]) {
+              console.log(envar + ' = ' + container[envar])
+            }
+          })
+        }
+      })
+
+
+      // change envar to new value
+    } else if (args.length === 3) {
+      _.each(system.topology.containers, function (container) {
+        if (container.name === args[0]) {
+          console.log('\nvariables in ' + container.name.yellow)
+
+          _.each(Object.keys(container), function (envar) {
+            if (envar === args[1]) {
+              var oldValueType = typeof container[envar]
+              var oldValue = container[envar]
+              var newValue = args[2]
+              var newValueType = typeof oldValue
+
+              if (newValueType === oldValueType) { newValue = container[envar] = args[2] }
+              console.log('Old value type == ' + oldValueType)
+              console.log('new value type = ' + newValueType)
+              console.log('Old value = ' + oldValue)
+              console.log('New value = ' + newValue)
+              console.log('args[1] = ' + args[1] + ' | ' + container[envar] + ' = ' + newValue)
+
+
+              if (_runner.isProcessRunning(system, args[0])) {
+                _runner.stop(system, args[0], function () {
+                  _runner.start(system, args[0], cb)
+                })
+              } else {
+                cb('process not running!')
+              }
+            }
+          })
+        }
+      })
+    } // args 3
+
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   function isDisabled (system){
@@ -490,6 +731,7 @@ module.exports = function () {
   }
 
   function init (system, runner, dns) {
+    initConfig()
     _runner = runner
     _dns = dns
     isDisabled(system)
