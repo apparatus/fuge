@@ -21,7 +21,6 @@ var fcfg = require('fuge-config')()
 module.exports = function () {
 
   var compile = function (args, cb) {
-    console.log('path args???      ' + args[0])
     var yamlPath = path.resolve(args[0] || path.join(process.cwd(), 'fuge.yml'))
     var logPath
 
@@ -45,10 +44,10 @@ module.exports = function () {
       cb(err, system)
     })
 
-
   }
-
   return {
     compile: compile
+
   }
+
 }

@@ -16,11 +16,11 @@
 
 var _ = require('lodash')
 var CliTable = require('cli-table')
-require('colors')
 var fs = require('fs')
 var yaml = require('js-yaml')
 var path = require('path')
 var fcfg = require('fuge-config/index')()
+require('colors')
 
 
 module.exports = function () {
@@ -32,12 +32,13 @@ module.exports = function () {
 
 
   var psList = function (args, system, cb) {
-
     if (args.length > 0) {
       return shellExecute('ps ' + args.join(' '), system, cb)
     }
 
     var table = new CliTable({chars: tableChars, style: tableStyle, head: ['name'.white, 'type'.white, 'group'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15, 15]})
+
+
 
     _.each(system.topology.containers, function (container) {
       if (!container.group) { container.group = 'default' }
@@ -68,6 +69,7 @@ module.exports = function () {
             container.tail ? 'yes'.green : 'no'.red])
         }
       }
+
     })
     if (_dns) {
       table.push(['dns'.green,
@@ -79,6 +81,7 @@ module.exports = function () {
     }
     console.log(table.toString())
     cb()
+
   }
 
 
@@ -96,14 +99,6 @@ module.exports = function () {
     }
   }
 
-
-  function groups (system) {
-    _.each(system.topology.containers, function (container) {
-      if (!container.group) {
-        container.group = 'default'
-      }
-    })
-  }
 
 
   function isGroup (args, system) {
@@ -472,8 +467,6 @@ module.exports = function () {
     help: {action: showHelp, description: 'show help on commands'}
   }
 
-
-
   var currentYmlConfig
   var newYmlConfig
   var yamlPath = path.resolve(path.join(process.cwd(), 'fuge\\fuge.yml'))
@@ -565,9 +558,9 @@ module.exports = function () {
 
    // args[0]     args[1]      args[2]       args[3]
    // command: <process name>  <variable>  <new value>
-  function setEnvVariable (args, system, cb, command) {
+  function setEnvVariable (args, system, cb) {
     var value
-     // show all env-vars for process
+     // show all values for process
     if (args.length === 1) {
       _.each(system.topology.containers, function (container) {
         if (container.name === args[0]) {
@@ -594,7 +587,7 @@ module.exports = function () {
               if (typeof Object.values(envar) === 'object' && envar !== null) {
                 console.log(envar + ' = ' + Object.entries(container[envar]))
               } else {
-                console.log(envar + ' === ' + container[envar])
+                console.log(envar + ' = ' + container[envar])
               }
             }
           })
@@ -674,14 +667,13 @@ module.exports = function () {
     _runner = runner
     _dns = dns
     isDisabled(system)
-    groups(system)
+
     var sub = Object.keys(system.topology.containers)
     Object.keys(_commands).forEach(function (key) {
       if (_commands[key].sub) {
         _commands[key].sub = sub
       }
     })
-
     return _commands
   }
 
