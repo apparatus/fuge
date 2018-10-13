@@ -413,6 +413,11 @@ module.exports = function () {
   }
 
 
+  var pApplyCommand = function (args, system, cb) {
+    _runner.papply(system, args.join(' '), cb)
+  }
+
+
   var showHelp = function (args, system, cb) {
     var table = new CliTable({chars: tableChars, style: tableStyle, colWidths: [10, 100]})
     console.log('available commands:')
@@ -460,6 +465,7 @@ module.exports = function () {
     test: {action: testRepositories, sub: [], description: 'performs a test command for all artifacts with a defined test setting,\n usage: test <process> | <group> | all'},
     status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | <group> | all'},
     apply: {action: applyCommand, sub: [], description: 'apply a shell command to all processes'},
+    papply: {action: pApplyCommand, sub: [], description: 'apply a shell command to all processes asynchronously'},
     rel: {action: findChangedProcesses, sub: [], description: 'reload process envs after fuge.yml config change'},
     y: {action: rebuild, sub: [], description: 'accept config changes and reload'},
     n: {action: noReload, sub: [], description: 'cancel reload'},
