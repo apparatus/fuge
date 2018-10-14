@@ -466,10 +466,10 @@ module.exports = function () {
     status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | <group> | all'},
     apply: {action: applyCommand, sub: [], description: 'apply a shell command to all processes'},
     papply: {action: pApplyCommand, sub: [], description: 'apply a shell command to all processes asynchronously'},
-    rel: {action: findChangedProcesses, sub: [], description: 'reload process envs after fuge.yml config change'},
+    rel: {action: findChangedProcesses, sub: [], description: 'reload process envs after fuge.yml config change. usage: rel'},
     y: {action: rebuild, sub: [], description: 'accept config changes and reload'},
     n: {action: noReload, sub: [], description: 'cancel reload'},
-    setval: {action: setEnvVariable, sub: [], description: 'change a config value in memory. usage:\n To see all values: setval <process> \n To see single value: setval <process> <variable> \n To set value: setval <process> <variable> <value>. \n To set env value: setval <process> (env) <variable> <value>. \n '},
+    setval: {action: setEnvVariable, sub: [], description: 'change a config value in memory. usage:\n To see all values: setval <process> \n To see single value: setval <process> <variable> \n To set value: setval <process> <variable> <value>. \n To set env value: setval <process> env <variable> <value>. \n '},
     help: {action: showHelp, description: 'show help on commands'}
   }
 
@@ -515,8 +515,8 @@ module.exports = function () {
 
     if (changedProcesses.length > 0) {
       if (isGlobal === true) { console.log('You have changed a global variable so all processes will need to be restarted.') }
-      console.log('Changed values in:  ' + changedProcesses)
-      console.log('Do you want to save changes and reload these services? (y/n)')
+      console.log('There are changed values in:  ' + changedProcesses)
+      console.log('Do you want to apply these changes? (y/n)')
     } else {
       console.log('No changes in yml file')
     }
@@ -542,11 +542,13 @@ module.exports = function () {
     if (_runner.isProcessRunning(system, container.name)) {
       _runner.stop(system, container.name, function () {
         singleLoad(yamlPath, logPath, system, container, function () {
+          _dns.addZone(system.global.dns)
           _runner.start(system, container.name, cb)
         })
       })
     } else {
       singleLoad(yamlPath, logPath, system, container, cb)
+      _dns.addZone(system.global.dns)
     }
   }
 
@@ -590,8 +592,9 @@ module.exports = function () {
         if (container.name === args[0]) {
           _.each(Object.keys(container), function (envar) {
             if (envar === args[1]) {
-              if (typeof Object.values(envar) === 'object' && envar !== null) {
-                console.log(envar + ' = ' + Object.entries(container[envar]))
+              // console.log('typeof envar= '+typeof container[envar])
+              if (typeof container[envar] === 'object' && envar !== null) {
+                console.log(envar + ':\n' + Object.entries(container[envar]))
               } else {
                 console.log(envar + ' = ' + container[envar])
               }
