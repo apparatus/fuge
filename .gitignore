@@ -19,6 +19,7 @@ dist
 .tmp
 .sass-cache
 .nyc_output
+.vscode
 app/bower_components
 options.mine.js
 db/

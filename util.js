@@ -17,6 +17,8 @@
 var fs = require('fs')
 var path = require('path')
 var fcfg = require('fuge-config')()
+var yaml = require('js-yaml')
+var _ = require('lodash')
 
 module.exports = function () {
 
@@ -47,7 +49,51 @@ module.exports = function () {
 
   }
 
+
+
+ // array of container names that have been changed in yml file
+  var findChanged = function (changedProcesses, currentYmlConfig, newYmlConfig, cb) {
+    changedProcesses = []
+    var isGlobal = false
+    try {
+      newYmlConfig = yaml.safeLoad(fs.readFileSync(process.env.yamlPath, 'utf8'))
+    } catch (err) {
+      console.log(err)
+    }
+    _.each(Object.keys(currentYmlConfig), function (name) {
+      if (JSON.stringify(Object.values(currentYmlConfig[name])) !== JSON.stringify(Object.values(newYmlConfig[name]))) {
+      // if(err){cb(err)}
+        changedProcesses.push(name)
+        if (name === 'fuge_global') { isGlobal = true }
+      }
+    })
+
+    if (changedProcesses.length > 0) {
+      if (isGlobal === true) { console.log('You have changed a global variable so all processes will need to be restarted.') }
+      console.log('There are changed values in:  ' + changedProcesses)
+      console.log('Do you want to apply these changes? (y/n)')
+      return changedProcesses
+    } else {
+      console.log('No changes in yml file')
+    }
+    currentYmlConfig = newYmlConfig
+  }
+
+
+
+  function isDisabled (system) {
+    _.each(system.topology.containers, function (container) {
+      if (container.path === null) {
+        container.status = 'disabled'
+      } else { container.status === 'enabled' }
+    })
+  }
+
+
+
   return {
-    compile: compile
+    compile: compile,
+    findChanged: findChanged,
+    isDisabled: isDisabled
   }
 }

@@ -53,6 +53,7 @@ var runCommand = function (command) {
 
 
 var runShell = function (args) {
+  process.env.yamlPath = args
   console.log('compiling....')
   util.compile(args, function (err, system) {
     if (err) { return console.error(err) }

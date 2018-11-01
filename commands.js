@@ -18,9 +18,11 @@ var _ = require('lodash')
 var CliTable = require('cli-table')
 var fs = require('fs')
 var yaml = require('js-yaml')
-var path = require('path')
-var fcfg = require('fuge-config/index')()
+var fcfgI = require('fuge-config/index')()
+var fcfgEv = require('fuge-config/environment')()
+var util = require('./util')()
 require('colors')
+
 
 
 module.exports = function () {
@@ -30,6 +32,10 @@ module.exports = function () {
   var tableChars = { 'top': '', 'top-mid': '', 'top-left': '', 'top-right': '', 'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '', 'left': '', 'left-mid': '', 'mid': '', 'mid-mid': '', 'right': '', 'right-mid': '', 'middle': '' }
   var tableStyle = { 'padding-left': 0, 'padding-right': 0 }
 
+  var currentYmlConfig
+  var newYmlConfig = {}
+  var changedProcesses = []
+
 
   var psList = function (args, system, cb) {
     if (args.length > 0) {
@@ -37,7 +43,6 @@ module.exports = function () {
     }
 
     var table = new CliTable({chars: tableChars, style: tableStyle, head: ['name'.white, 'type'.white, 'group'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15, 15]})
-
 
 
     _.each(system.topology.containers, function (container) {
@@ -469,14 +474,9 @@ module.exports = function () {
     rel: {action: findChangedProcesses, sub: [], description: 'reload process envs after fuge.yml config change. usage: rel'},
     y: {action: rebuild, sub: [], description: 'accept config changes and reload'},
     n: {action: noReload, sub: [], description: 'cancel reload'},
-    setval: {action: setEnvVariable, sub: [], description: 'change a config value in memory. usage:\n To see all values: setval <process> \n To see single value: setval <process> <variable> \n To set value: setval <process> <variable> <value>. \n To set env value: setval <process> env <variable> <value>. \n '},
+    setval: {action: setEnvVar, sub: [], description: 'change a config value in memory. usage:\n To see all values: setval <process> \n To see single value: setval <process> <variable> \n To set value: setval <process> <variable> <value>. \n To set env value: setval <process> env <variable> <value>. \n '},
     help: {action: showHelp, description: 'show help on commands'}
   }
-
-  var currentYmlConfig
-  var newYmlConfig
-  var yamlPath = path.resolve(path.join(process.cwd(), 'fuge\\fuge.yml'))
-  var changedProcesses = []
 
 
 
@@ -485,10 +485,12 @@ module.exports = function () {
   }
 
 
-  // save the initial yml config to compare to a changed yml
+
+  // save the initial yml config at startup to compare to a changed yml
   function initConfig () {
+    var path = process.env.yamlPath
     try {
-      currentYmlConfig = yaml.safeLoad(fs.readFileSync(yamlPath, 'utf8'))
+      currentYmlConfig = yaml.safeLoad(fs.readFileSync(path, 'utf8'))
     } catch (ex) {
       console.log(ex)
     }
@@ -498,29 +500,11 @@ module.exports = function () {
 
   // array of container names that have been changed in yml file
   function findChangedProcesses () {
-    changedProcesses = []
-    var isGlobal = false
-    try {
-      newYmlConfig = yaml.safeLoad(fs.readFileSync(yamlPath, 'utf8'))
-    } catch (ex) {
-      console.log(ex)
-    }
-    _.each(Object.keys(currentYmlConfig), function (name) {
-      if (JSON.stringify(Object.values(currentYmlConfig[name])) !== JSON.stringify(Object.values(newYmlConfig[name]))) {
-        changedProcesses.push(name)
-        if (name === 'fuge_global') { isGlobal = true }
-      }
+    changedProcesses = util.findChanged(changedProcesses, currentYmlConfig, newYmlConfig, function (err, system) {
+      if (err) { return console.error(err) }
     })
-
-
-    if (changedProcesses.length > 0) {
-      if (isGlobal === true) { console.log('You have changed a global variable so all processes will need to be restarted.') }
-      console.log('There are changed values in:  ' + changedProcesses)
-      console.log('Do you want to apply these changes? (y/n)')
-    } else {
-      console.log('No changes in yml file')
-    }
   }
+
 
 
   function rebuild (args, system, cb) {
@@ -529,32 +513,29 @@ module.exports = function () {
         reRun(system, container, cb)
       }
     })
-    currentYmlConfig = newYmlConfig
   }
 
 
-//   node --inspect ../../fuge/fuge.js shell fuge/fuge.yml
 
   function reRun (system, container, cb) {
-    var path = []
-    path[0] = 'fuge\\fuge.yml'
     var logPath
     if (_runner.isProcessRunning(system, container.name)) {
       _runner.stop(system, container.name, function () {
-        singleLoad(yamlPath, logPath, system, container, function () {
-          _dns.addZone(system.global.dns)
+        singleLoad(logPath, system, container, function () {
+          if (_dns) { _dns.addZone(system.global.dns) }
           _runner.start(system, container.name, cb)
         })
       })
     } else {
-      singleLoad(yamlPath, logPath, system, container, cb)
-      _dns.addZone(system.global.dns)
+      singleLoad(logPath, system, container, cb)
+      if (_dns) { _dns.addZone(system.global.dns) }
     }
   }
 
 
-  function singleLoad (yamlPath, logPath, system, container, cb) {
-    fcfg.reload(yamlPath, system, container, function (err, system) {
+
+  function singleLoad (logPath, system, container, cb) {
+    fcfgI.reload(system, container, function (err, system) {
       if (err) { return cb(err) }
       system.global.log_path = logPath
       cb(err, system)
@@ -564,118 +545,31 @@ module.exports = function () {
 
 
 
-   // args[0]     args[1]      args[2]       args[3]
-   // command: <process name>  <variable>  <new value>
-  function setEnvVariable (args, system, cb) {
-    var value
-     // show all values for process
-    if (args.length === 1) {
-      _.each(system.topology.containers, function (container) {
-        if (container.name === args[0]) {
-          console.log('\nvariables in ' + container.name.green)
-
-          _.each(Object.keys(container), function (val) {
-            value = container[val]
-            if (typeof value === 'object' && value !== null) {
-              console.log(' ' + val + ' = ' + Object.entries(value))
-            } else {
-              console.log(' ' + val + ' = ' + value)
-            }
+  function setEnvVar (args, system, cb) {
+    if (args.length === 1 || args.length === 2) {
+      fcfgEv.setEnvVariable(args, system, cb)
+    } else
+    if (args.length === 3 || args.length === 4) {
+      if (_runner.isProcessRunning(system, args[0])) {
+        _runner.stop(system, args[0], function () {
+          fcfgEv.setEnvVariable(args, system, function () {
+            _runner.start(system, args[0], cb)
           })
-        }
-      })
-
-
-    // show env-var and value for process <var>
-    } else if (args.length === 2) {
-      _.each(system.topology.containers, function (container) {
-        if (container.name === args[0]) {
-          _.each(Object.keys(container), function (envar) {
-            if (envar === args[1]) {
-              // console.log('typeof envar= '+typeof container[envar])
-              if (typeof container[envar] === 'object' && envar !== null) {
-                console.log(envar + ':\n' + Object.entries(container[envar]))
-              } else {
-                console.log(envar + ' = ' + container[envar])
-              }
-            }
-          })
-        }
-      })
-
-      // change envar to new value
-    } else if (args.length === 3) {
-      _.each(system.topology.containers, function (container) {
-        if (container.name === args[0]) {
-          _.each(Object.keys(container), function (envar) {
-            if (envar === args[1]) {
-              var oldValueType = typeof container[envar]
-              var oldValue = container[envar]
-              var newValue = args[2]
-              var newValueType = typeof oldValue
-
-              if (newValueType === oldValueType) { newValue = container[envar] = args[2] }
-              console.log('Old value = ' + oldValue)
-              console.log('New value = ' + newValue)
-              var con = []
-              con[0] = args[0]
-              restartProcess(con, system, cb)
-            }
-          })
-        }
-      })
-
-
-      //             args[0]     args[1]      args[2]       args[3]
-      // command: <process name>   env       <variable>  <new value>
-    } else if (args.length === 4) {
-      _.each(system.topology.containers, function (container) {
-        if (container.name === args[0]) {
-          if (args[1] === 'env') {
-            if (typeof Object.values(system.topology.containers[args[0]].environment) === 'object') {
-              _.each(Object.keys(system.topology.containers[args[0]].environment), function (envar) {
-                if (envar === args[2]) {
-
-                  var oldValueType = typeof system.topology.containers[args[0]].environment[envar]
-                  var oldValue = system.topology.containers[args[0]].environment[envar]
-                  var newValue = args[3]
-                  var newValueType = typeof oldValue
-
-                  if (newValueType === oldValueType) { newValue = system.topology.containers[args[0]].environment[envar] = args[3] }
-                  console.log('Old value = ' + oldValue)
-                  console.log('New value = ' + newValue)
-                  var con = []
-                  con[0] = args[0]
-
-                  restartProcess(con, system, cb)
-                }
-              })
-            }
-          } else { console.log('usage: command: <process name>   env  <variable>  <new value>') }
-        }
-      })
-    } // args 4
-
-
-  }
-
-
-
-  function isDisabled (system) {
-    _.each(system.topology.containers, function (container) {
-      if (container.path === null || container.status === 'disabled') {
-        container.status = 'disabled'
-
+        })
+      } else {
+        fcfgEv.setEnvVariable(args, system, cb)
       }
-    })
+    } else { console.log('usage: command: <process name>  env(only for KUBE)  <variable>  <new value>') }
+
   }
+
 
 
   function init (system, runner, dns) {
     initConfig()
     _runner = runner
     _dns = dns
-    isDisabled(system)
+    util.isDisabled(system)
 
     var sub = Object.keys(system.topology.containers)
     Object.keys(_commands).forEach(function (key) {
