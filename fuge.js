@@ -18,7 +18,8 @@
 var program = require('commist')()
 var shell = require('./shell')(true)
 var util = require('./util')()
-
+var { init } = require('./httpServer')
+var commands
 
 function showVersion (args, system, cb) {
   console.log('')
@@ -56,7 +57,8 @@ var runShell = function (args) {
   console.log('compiling...')
   util.compile(args, function (err, system) {
     if (err) { return console.error(err) }
-    shell.run(system)
+    commands = shell.run(system)
+    init(system, commands)
   })
 }
 

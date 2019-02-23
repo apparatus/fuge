@@ -1,0 +1,41 @@
+fuge_global:
+  run_containers: false
+  dns_enabled: true
+  dns_host: 127.0.0.1
+  dns_port: 53053
+  dns_suffix: internal
+  dns_namespace: hub
+  dns_external:
+    - 'spoke-idp-api.esbn.spoke IN A 127.0.0.1'
+    - '_main._tcp.spoke-idp-api.esbn.spoke IN SRV 0 5 9000 spoke-idp-api.esbn.spoke'
+    - 'spoke-idp-api.ie-passport.spoke IN A 127.0.0.1'
+    - '_main._tcp.spoke-idp-api.ie-passport.spoke IN SRV 0 5 9010 spoke-idp-api.ie-passport.spoke'
+  tail: true
+  monitor: true
+  monitor_excludes:
+    - '**/node_modules/**'
+    - '**/.git/**'
+    - '*.log'
+    - '**/*.swp'
+  environment:
+    - "AWS_DEFAULT_REGION=eu-west-1"
+    - "AWS_ACCOUNT_ID=123456789012"
+    - "AWS_ACCESS_KEY_ID=foobar"
+    - "AWS_SECRET_ACCESS_KEY=foobar"
+
+#domestika-dashboard:
+#  type: process
+#  run: "npm start"
+#  path: "domestika-dashboard"
+#
+domestika-api:
+  type: process
+  run: "npm start"
+  path: "/Users/meluko/develop/domestika/domestika-infra/domestika-api"
+  monitor: true
+  environment:
+    - "HTTP_PORT=8001"
+    - "SOCKET_PORT=8088"
+  ports:
+    - main=8000
+    - socket=8088
