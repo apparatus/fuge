@@ -2,7 +2,7 @@ fuge_global:
   run_containers: false
   dns_enabled: true
   dns_host: 127.0.0.1
-  dns_port: 53053
+  dns_port: 53054
   dns_suffix: internal
   dns_namespace: hub
   dns_external:
@@ -24,6 +24,7 @@ fuge_global:
     - "AWS_SECRET_ACCESS_KEY=foobar"
   http_server:
     - 'port=3001'
+    - 'forward_to_ports=3004'
 
 domestika-api-1:
   type: process

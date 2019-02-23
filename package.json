@@ -32,7 +32,8 @@
     "fuge-dns": "^2.0.0",
     "fuge-runner": "^2.0.1",
     "lodash": "^4.5.0",
-    "tpmorp": "^1.0.5"
+    "tpmorp": "^1.0.5",
+    "wreck": "^14.1.4"
   },
   "repository": {
     "type": "git",
