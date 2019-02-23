@@ -22,13 +22,10 @@ fuge_global:
     - "AWS_ACCOUNT_ID=123456789012"
     - "AWS_ACCESS_KEY_ID=foobar"
     - "AWS_SECRET_ACCESS_KEY=foobar"
+  http_server:
+    - 'port=3001'
 
-#domestika-dashboard:
-#  type: process
-#  run: "npm start"
-#  path: "domestika-dashboard"
-#
-domestika-api:
+domestika-api-1:
   type: process
   run: "npm start"
   path: "/Users/meluko/develop/domestika/domestika-infra/domestika-api"
@@ -37,5 +34,38 @@ domestika-api:
     - "HTTP_PORT=8001"
     - "SOCKET_PORT=8088"
   ports:
-    - main=8000
-    - socket=8088
+    - main=8001
+    - socket=8089
+domestika-api-2:
+  type: process
+  run: "npm start"
+  path: "/Users/meluko/develop/domestika/domestika-infra/domestika-api"
+  monitor: true
+  environment:
+    - "HTTP_PORT=8001"
+    - "SOCKET_PORT=8088"
+  ports:
+    - main=8002
+    - socket=8090
+domestika-api-3:
+  type: process
+  run: "npm start"
+  path: "/Users/meluko/develop/domestika/domestika-infra/domestika-api"
+  monitor: true
+  environment:
+    - "HTTP_PORT=8001"
+    - "SOCKET_PORT=8088"
+  ports:
+    - main=8003
+    - socket=8093
+domestika-api-4:
+  type: process
+  run: "npm start"
+  path: "/Users/meluko/develop/domestika/domestika-infra/domestika-api"
+  monitor: true
+  environment:
+    - "HTTP_PORT=8001"
+    - "SOCKET_PORT=8088"
+  ports:
+    - main=8004
+    - socket=8094

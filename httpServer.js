@@ -22,20 +22,36 @@ function init(system, commands) {
     });
 
     app.post('/api/commands/:command', async function (req, res) {
+        const originalLog = console.log
+        console.log = () => {}
         const args = req.query.args || []
 
         const result = await promisifyCommand(req.params.command, args, system)
+        console.log = originalLog
         res.send(result);
     });
 
     app.use('/', express.static(__dirname + '/public'));
 
-    app.listen(3000, function () {
-        console.log('Example app listening on port 3000!');
+    const port = getPortFromSystem(system)
+
+    app.listen(port, function () {
+        console.log(`Fuge http server listening on port ${port}`);
+        console.log(`Open http client at http://localhost:${port}`);
     });
 }
 
+function getPortFromSystem(system) {
+    const { global: { http_server } } = system
+    if (!http_server) {
+        return 3000
+    }
 
+    const port = http_server.find(it => it.match(/port=/)).replace(/port=/, '')
+    console.log('PORT', port)
+
+    return port
+}
 
 module.exports = {
     init
