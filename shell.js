@@ -89,7 +89,9 @@ module.exports = function (hardExit) {
 
   function initCommands (system, runner, dns) {
     commands = cmds.init(system, runner, dns)
-    commands.exit = {action: stopSystem, description: 'exit fuge', isExit: true}
+    commands.exit = { action: stopSystem, description: 'exit fuge', isExit: true }
+    commands.shell = { action: cmds.shell, description: 'Execute any shell command'}
+
     return commands
   }
 

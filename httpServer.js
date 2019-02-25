@@ -3,13 +3,28 @@ const Wreck = require("wreck");
 
 function init(system, commands) {
     function promisifyCommand(command = '',  args = [], system) {
-        const commandObj = commands[command]
         return new Promise((resolve, reject) => {
+            const commandObj = commands[command] || commands.shell
+
+            const originalConsoleLog = console.log
+            let consoleLogResult = null
+
+            console.log = (str) => consoleLogResult = str
+
             commandObj.action(args, system, (error, result) => {
+                console.log = originalConsoleLog
                 if (error) {
+                    console.log('- ERROR')
                     reject(error)
                 }
-                resolve(result)
+                if (result) {
+                    console.log('- RESULT', result)
+                    resolve(result)
+                } else {
+                    console.log('- ELSE')
+                    console.log(consoleLogResult)
+                    resolve(consoleLogResult)
+                }
             })
         })
     }
@@ -26,15 +41,24 @@ function init(system, commands) {
         next();
     });
 
-    app.post('/api/commands/:command', consoleLogWrapper(async function (req, res) {
+    app.post('/api/commands/:command', async function (req, res) {
         const command = req.params.command
         const args = req.query.args || []
 
-        const result = await promisifyCommand(command, args, system).catch(err => 'error') || []
+        const result = await promisifyCommand(command, args, system).catch(error => console.log('>', error, '<')) || []
         const forwardResults = await forwardRequest(forwardPorts, 'post', `/api/commands/${command}`, args )
 
-        res.send([ ...result, ...forwardResults]);
-    }));
+        if (Array.isArray(result)) {
+            res.send([ ...result, ...forwardResults]);
+        } else if (typeof  result === 'string') {
+            process.stdout.write('string')
+            process.stdout.write(result)
+            res.send(`${result}\n${forwardResults.join('\n')}`)
+        } else {
+            process.stdout.write('object')
+            res.send({ ...result, ...forwardResults })
+        }
+    });
 
     app.use('/', express.static(__dirname + '/public'));
 
@@ -88,27 +112,13 @@ async function forwardRequest(forwardPorts, method, url, args) {
 }
 
 async function performRequest(method, url) {
-    const response = await await Wreck.request(method, url);
-    const bodyBuffer = await Wreck.read(response);
-    return parseBodyBuffer(bodyBuffer)
-}
-
-function parseBodyBuffer(bodyBuffer) {
-    bodyBuffer = bodyBuffer.toString()
     try {
-        return JSON.parse(bodyBuffer)
-    } catch (error) {
+        const response = await await Wreck.request(method, url);
+        const bodyBuffer = await Wreck.read(response);
+        return JSON.parse(bodyBuffer.toString)
         return bodyBuffer
-    }
-}
-
-function consoleLogWrapper(cb) {
-    return async function (req, res) {
-        const originalLog = console.log
-        console.log = () => {}
-        const result = await cb(req, res)
-        console.log = originalLog
-        return result
+    } catch (error) {
+        return  []
     }
 }
 
