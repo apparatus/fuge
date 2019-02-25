@@ -2,14 +2,12 @@ fuge_global:
   run_containers: false
   dns_enabled: true
   dns_host: 127.0.0.1
-  dns_port: 53054
+  dns_port: 7140
   dns_suffix: internal
-  dns_namespace: hub
+  dns_namespace: service
   dns_external:
-    - 'spoke-idp-api.esbn.spoke IN A 127.0.0.1'
-    - '_main._tcp.spoke-idp-api.esbn.spoke IN SRV 0 5 9000 spoke-idp-api.esbn.spoke'
-    - 'spoke-idp-api.ie-passport.spoke IN A 127.0.0.1'
-    - '_main._tcp.spoke-idp-api.ie-passport.spoke IN SRV 0 5 9010 spoke-idp-api.ie-passport.spoke'
+    - 'acc-user-api.service.internal IN A 127.0.0.1'
+    - '_main._tcp.acc-user-api.service.internal IN SRV 0 5 7000 acc-user-api.service.internal'
   tail: true
   monitor: true
   monitor_excludes:
@@ -17,56 +15,22 @@ fuge_global:
     - '**/.git/**'
     - '*.log'
     - '**/*.swp'
+    - '**/*.missing.json'
   environment:
     - "AWS_DEFAULT_REGION=eu-west-1"
     - "AWS_ACCOUNT_ID=123456789012"
     - "AWS_ACCESS_KEY_ID=foobar"
     - "AWS_SECRET_ACCESS_KEY=foobar"
   http_server:
-    - 'port=3001'
-    - 'forward_to_ports=3004'
+    - 'port=3000'
 
-domestika-api-1:
+kyc-customer-sim:
   type: process
-  run: "npm start"
-  path: "/Users/meluko/develop/domestika/domestika-infra/domestika-api"
-  monitor: true
+  run: "bash -c 'npm run sequelize db:migrate && node --inspect=7123 index.js | npx pino-pretty'"
+  path: ../../kyc/kyc-customer-sim
   environment:
-    - "HTTP_PORT=8001"
-    - "SOCKET_PORT=8088"
+    - "DB_URL=postgres://postgres:pass@localhost:7142/kyc-customer-sim"
+    - "CALLBACK_URL=http://127.0.0.1:7103/customer-simulator/"
+    - "KYC_PUBLIC_URL=https://127.0.0.1:7143/"
   ports:
-    - main=8001
-    - socket=8089
-domestika-api-2:
-  type: process
-  run: "npm start"
-  path: "/Users/meluko/develop/domestika/domestika-infra/domestika-api"
-  monitor: true
-  environment:
-    - "HTTP_PORT=8001"
-    - "SOCKET_PORT=8088"
-  ports:
-    - main=8002
-    - socket=8090
-domestika-api-3:
-  type: process
-  run: "npm start"
-  path: "/Users/meluko/develop/domestika/domestika-infra/domestika-api"
-  monitor: true
-  environment:
-    - "HTTP_PORT=8001"
-    - "SOCKET_PORT=8088"
-  ports:
-    - main=8003
-    - socket=8093
-domestika-api-4:
-  type: process
-  run: "npm start"
-  path: "/Users/meluko/develop/domestika/domestika-infra/domestika-api"
-  monitor: true
-  environment:
-    - "HTTP_PORT=8001"
-    - "SOCKET_PORT=8088"
-  ports:
-    - main=8004
-    - socket=8094
+    - main=7103
