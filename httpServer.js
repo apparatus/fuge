@@ -1,39 +1,13 @@
 const express = require('express')
 const Wreck = require("wreck");
 
+const tableResultCommands = ['ps', 'zone']
+
 function init(system, commands) {
-    function promisifyCommand(command = '',  args = [], system) {
-        return new Promise((resolve, reject) => {
-            const commandObj = commands[command] || commands.shell
-
-            const originalConsoleLog = console.log
-            let consoleLogResult = null
-
-            console.log = (str) => consoleLogResult = str
-
-            commandObj.action(args, system, (error, result) => {
-                console.log = originalConsoleLog
-                if (error) {
-                    console.log('- ERROR')
-                    reject(error)
-                }
-                if (result) {
-                    console.log('- RESULT', result)
-                    resolve(result)
-                } else {
-                    console.log('- ELSE')
-                    console.log(consoleLogResult)
-                    resolve(consoleLogResult)
-                }
-            })
-        })
-    }
 
     var app = express();
     const port = getPortFromSystem(system)
     const forwardPorts = getForwardPortsFromSystem(system)
-
-    console.log({ forwardPorts })
 
     app.use(function(req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');
@@ -45,17 +19,14 @@ function init(system, commands) {
         const command = req.params.command
         const args = req.query.args || []
 
-        const result = await promisifyCommand(command, args, system).catch(error => console.log('>', error, '<')) || []
+        const result = await promisifyCommand(command, args, commands, system).catch(error => console.log('>', error, '<')) || []
         const forwardResults = await forwardRequest(forwardPorts, 'post', `/api/commands/${command}`, args )
 
         if (Array.isArray(result)) {
             res.send([ ...result, ...forwardResults]);
         } else if (typeof  result === 'string') {
-            process.stdout.write('string')
-            process.stdout.write(result)
             res.send(`${result}\n${forwardResults.join('\n')}`)
         } else {
-            process.stdout.write('object')
             res.send({ ...result, ...forwardResults })
         }
     });
@@ -64,8 +35,32 @@ function init(system, commands) {
 
     app.listen(port, function () {
         console.log(`Fuge http server listening on port ${port}`);
-        console.log(`Open http client at http://localhost:${port}`);
+        console.log(`Open http client at http://localhost:${port} `);
     });
+}
+
+function promisifyCommand(command = '',  args = [], commands, system) {
+    return new Promise((resolve, reject) => {
+        const commandObj = commands[command] || commands.shell
+
+        const originalConsoleLog = console.log
+        let consoleLogResult = null
+
+        console.log = (str) => consoleLogResult = str
+
+        commandObj.action(args, system, (error) => {
+            console.log = originalConsoleLog
+            if (error) {
+                reject(error)
+            }
+
+            if (tableResultCommands.includes(command)) {
+                resolve(parseTable(consoleLogResult))
+            }
+
+            resolve(consoleLogResult)
+        })
+    })
 }
 
 function getPortFromSystem(system) {
@@ -74,10 +69,7 @@ function getPortFromSystem(system) {
         return 3000
     }
 
-    const port = http_server.find(it => it.match(/port=/)).replace(/port=/, '')
-    console.log('PORT', port)
-
-    return port
+    return http_server.find(it => it.match(/port=/)).replace(/port=/, '')
 }
 
 function getForwardPortsFromSystem(system) {
@@ -90,10 +82,8 @@ function getForwardPortsFromSystem(system) {
     if (!forwardToPorts) {
         return []
     }
-    const ports = forwardToPorts.replace(/forward_to_ports=/, '').split(',')
-    console.log('PORTS', ports)
 
-    return ports
+    return forwardToPorts.replace(/forward_to_ports=/, '').split(',')
 }
 
 async function forwardRequest(forwardPorts, method, url, args) {
@@ -122,24 +112,21 @@ async function performRequest(method, url) {
     }
 }
 
-module.exports = {
-    init
-}
-
-
-
-
 function parseTable(table) {
-  const splitted = table.split('\n')
-  const [ firstLine ] = splitted.splice(0, 1)
-  const columns = firstLine .replace(/\b\s\b/g, '-')
-    .match(/(\b[a-z-]+\s+\b)/g).map(it => ({
+  const [ firstLine, ...splitted ] = table
+    .replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '') // Remove ANSI colors
+    .split('\n')
+
+  const columns = firstLine.replace(/\b\s\b/g, '-')
+    .match(/(\b[a-z-]+\s+)/g)
+    .map(it => ({
       key: it.trim(),
       length: it.length
     }))
 
+    console.log({ columns })
+
   return splitted.map(nextLine => {
-    console.log('>', nextLine)
     let substringStart = 0
 
     return columns.reduce((previous, current) => {
@@ -147,8 +134,9 @@ function parseTable(table) {
       substringStart += current.length
       return result
     }, {})
-
   })
-
 }
 
+module.exports = {
+    init
+}
