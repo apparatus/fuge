@@ -127,3 +127,28 @@ module.exports = {
 }
 
 
+
+
+function parseTable(table) {
+  const splitted = table.split('\n')
+  const [ firstLine ] = splitted.splice(0, 1)
+  const columns = firstLine .replace(/\b\s\b/g, '-')
+    .match(/(\b[a-z-]+\s+\b)/g).map(it => ({
+      key: it.trim(),
+      length: it.length
+    }))
+
+  return splitted.map(nextLine => {
+    console.log('>', nextLine)
+    let substringStart = 0
+
+    return columns.reduce((previous, current) => {
+      const result = { ...previous, [current.key]: nextLine.substring(substringStart, substringStart + current.length).trim() }
+      substringStart += current.length
+      return result
+    }, {})
+
+  })
+
+}
+
