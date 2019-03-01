@@ -1,7 +1,7 @@
 fuge_global:
   run_containers: false
   dns_enabled: true
-  dns_host: 127.0.0.1
+  dns_host: '127.0.0.1'
   dns_port: 7140
   dns_suffix: internal
   dns_namespace: service
