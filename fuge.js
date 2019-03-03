@@ -18,7 +18,6 @@
 var program = require('commist')()
 var shell = require('./shell')(true)
 var util = require('./util')()
-//var httpServer = require('./httpServer')
 var webSocketServer = require('./webSocketServer')
 var commands
 
