@@ -138,4 +138,5 @@ JSON.tryParse = function(string) {
 
 module.exports = {
     init
+
 }
