@@ -23,10 +23,6 @@ function init(system, commands) {
   app.post('/api/commands/docker-compose/ps', async function (req, res) {
     const result = await promisifyCommand('shell', ['docker-compose', 'ps'].join(' '), commands, system)
 
-    if (!result) {
-      return
-    }
-
     res.send(formatDockerComposePs(result))
   })
 
@@ -185,23 +181,28 @@ function getRowsFromTable(table, columns) {
 
 function formatDockerComposePs(result) {
   if (typeof result !== 'string') {
-    return result
+    return []
   }
 
-  return result
-    .trim()
-    .split('\n')
-    .slice(2)
-    .map(it => {
-      const matches = it.match(/^([a-z-]+)\s+(.*)(Up|Exit\s\d+)\s*(.*)$/).slice(1,5)
-      const [name, process, status, tcpStatus] = matches
-      return {
-        name: name.trim(),
-        process: process.trim(),
-        status: status.trim(),
-        tcpStatus: (tcpStatus || '').trim()
-      }
-    })
+  try {
+    return result
+      .trim()
+      .split('\n')
+      .slice(2)
+      .map(it => {
+        const matches = it.match(/^([a-z-]+)\s+(.*)(Up|Exit\s\d+)\s*(.*)$/).slice(1,5)
+        const [name, process, status, tcpStatus] = matches
+        return {
+          name: name.trim(),
+          process: process.trim(),
+          status: status.trim(),
+          tcpStatus: (tcpStatus || '').trim()
+        }
+      })
+  } catch (error) {
+    return []
+  }
+
 }
 
 module.exports = {

@@ -18,7 +18,8 @@
 var program = require('commist')()
 var shell = require('./shell')(true)
 var util = require('./util')()
-var { init } = require('./httpServer')
+//var httpServer = require('./httpServer')
+var webSocketServer = require('./webSocketServer')
 var commands
 
 function showVersion (args, system, cb) {
@@ -58,7 +59,8 @@ var runShell = function (args) {
   util.compile(args, function (err, system) {
     if (err) { return console.error(err) }
     commands = shell.run(system)
-    init(system, commands)
+    //httpServer.init(system, commands)
+    webSocketServer.init(system, commands)
   })
 }
 

@@ -22,7 +22,9 @@ fuge_global:
     - "AWS_ACCESS_KEY_ID=foobar"
     - "AWS_SECRET_ACCESS_KEY=foobar"
   http_server:
-    - 'port=3000'
+    port: 3000
+	forward_to_ports:
+		acc: 3002
 
 kyc-customer-sim:
   type: process

@@ -34,21 +34,17 @@ module.exports = function () {
     }
 
     var table = new CliTable({chars: tableChars, style: tableStyle, head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15]})
-    let result = []
     _.each(system.topology.containers, function (container) {
       if (container.type === 'container' && system.global.run_containers === false) {
-        result.push(createContainerObject(container, []))
         table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', ''])
       } else {
         if (container.process && container.process.flags.running) {
-          result.push(createContainerObject(container, ['RUNNING']))
           table.push([container.name.green,
             container.type.green,
             'running'.green,
             container.monitor ? 'yes'.green : 'no'.red,
             container.tail ? 'yes'.green : 'no'.red])
         } else {
-          result.push(createContainerObject(container, []))
           table.push([container.name.red,
             container.type.red,
             'stopped'.red,
@@ -59,12 +55,6 @@ module.exports = function () {
     })
 
     if (_dns) {
-      result.push(createContainerObject({
-        name: 'dns',
-        type: 'internal',
-        monitor: false,
-        tail: false
-      }, []))
       table.push(['dns'.green,
         'internal'.green,
         'running'.green,
@@ -72,19 +62,8 @@ module.exports = function () {
         'no'.red])
     }
     console.log(table.toString())
-    cb(null, result)
+    cb(null)
   }
-
-  function createContainerObject(container, flags) {
-    return {
-      name: container.name,
-      type: container.type,
-      monitor: container.monitor ? 'yes' : 'no',
-      tail: container.tail ? 'yes' : 'no',
-      flags
-    }
-  }
-
 
   var showInfo = function (args, system, cb) {
     if (args.length > 0) {
@@ -265,20 +244,17 @@ module.exports = function () {
     var table = new CliTable({chars: tableChars, style: tableStyle, head: ['type'.white, 'domain'.white, 'address'.white, 'port'.white], colWidths: [10, 60, 60, 10]})
 
     if (_dns) {
-      const result = []
       var list = _dns.listRecords()
       _.each(list, function (entry) {
         if (entry.record._type === 'A') {
-          result.push({ type: 'A', domain: entry.domain, target: entry.record.target })
           table.push(['A'.white, entry.domain.white, entry.record.target.white, '-'.white])
         }
         if (entry.record._type === 'SRV') {
-          result.push({ type: 'SRV', domain: entry.domain, target: entry.record.target, port: entry.record.port })
           table.push(['SRV'.white, entry.domain.white, entry.record.target.white, entry.record.port.white])
         }
       })
       console.log(table.toString())
-      cb(null, result)
+      cb(null)
     } else {
       cb('dns is not running, to enable add the dns_enabled setting to the config file')
     }
