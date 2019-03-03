@@ -61,7 +61,7 @@ module.exports = function () {
         'no'.red])
     }
     console.log(table.toString())
-    cb(null)
+    cb()
   }
 
   var showInfo = function (args, system, cb) {
