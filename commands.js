@@ -253,7 +253,7 @@ module.exports = function () {
         }
       })
       console.log(table.toString())
-      cb(null)
+      cb()
     } else {
       cb('dns is not running, to enable add the dns_enabled setting to the config file')
     }
