@@ -59,7 +59,6 @@ var runShell = function (args) {
   util.compile(args, function (err, system) {
     if (err) { return console.error(err) }
     commands = shell.run(system)
-    //httpServer.init(system, commands)
     webSocketServer.init(system, commands)
   })
 }
