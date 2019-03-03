@@ -53,7 +53,6 @@ module.exports = function () {
         }
       }
     })
-
     if (_dns) {
       table.push(['dns'.green,
         'internal'.green,
