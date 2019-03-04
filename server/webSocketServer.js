@@ -4,7 +4,7 @@ const http = require('http')
 
 require('./utils/jsExtensions')
 
-const catchLog = require('./consoleLogCatcher')()
+const catchLog = require('./utils/consoleLogCatcher')()
 const { parseTable } = require('./utils/parser')
 
 const app = express()

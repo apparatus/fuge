@@ -4,7 +4,7 @@ const Wreck = require("wreck");
 const {
   catchLog,
   releaseLog
-} = require('./consoleLogCatcher')()
+} = require('./utils/consoleLogCatcher')()
 
 const tableResultCommands = ['ps', 'zone']
 
