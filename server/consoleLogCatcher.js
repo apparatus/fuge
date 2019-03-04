@@ -27,8 +27,10 @@ module.exports = () => {
     return result
   }
 
-  return {
-    catchLog,
-    releaseLog
+  return (cb) => {
+    catchLog()
+    cb()
+    return releaseLog()
   }
+
 }

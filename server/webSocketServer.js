@@ -4,10 +4,7 @@ const http = require('http')
 
 require('./utils/jsExtensions')
 
-const {
-    catchLog,
-    releaseLog
-} = require('./consoleLogCatcher')()
+const catchLog = require('./consoleLogCatcher')()
 const { parseTable } = require('./utils/parser')
 
 const app = express()
@@ -50,7 +47,7 @@ function init(system, commands) {
 
         ws.on('message', function (message) {
             let [, command, args] = message.match(/([a-zA-Z-]+)\s?(.*)/)
-            if (!command) {
+            if (!command || !commands[command]) {
                 command = 'shell'
             }
             args = args.trim().split(' ').filter(it => !!it)
@@ -73,19 +70,13 @@ function wrapCommands(commands, ws) {
         const action = properties.action
         properties.originalAction = action
         properties.action = (args, system, cb) => {
-            catchLog()
-            action(args, system, cb)
-            let result = releaseLog()
+            let result = catchLog(() => action(args, system, cb))
 
             if (tableResultCommands.includes(command)) {
                 result = parseTable(result)
             }
 
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify(result))
-            } else {
-                console.log('HERE', JSON.stringify(result))
-            }
+            ws.send(JSON.stringify(result))
         }
     })
 }
