@@ -1,8 +1,17 @@
-const WebSocket = require('ws');
+const WebSocket = require('ws')
+const express = require('express')
+const http = require('http')
+
+require('./utils/jsExtensions')
+
 const {
     catchLog,
     releaseLog
 } = require('./consoleLogCatcher')()
+const { parseTable } = require('./utils/parser')
+
+const app = express()
+const server = http.createServer(app)
 
 const tableResultCommands = ['ps', 'zone']
 const needPsCommands = ['stop', 'start', 'restart']
@@ -11,7 +20,9 @@ const originalStdoutWrite = process.stdout.write
 const originalStderrWrite = process.stderr.write
 
 function init(system, commands) {
-    const wss = new WebSocket.Server({ port: 8080 });
+    const wss = new WebSocket.Server({ server });
+
+    app.use('/', express.static(__dirname + '/public'))
 
     wss.on('connection', function connection(ws) {
 
@@ -32,6 +43,7 @@ function init(system, commands) {
         }
 
         ws.on('close', () => {
+            unwrapCommands(commands)
             process.stdout.write = originalStdoutWrite
             process.stderr.writr = originalStderrWrite
         })
@@ -42,7 +54,6 @@ function init(system, commands) {
                 command = 'shell'
             }
             args = args.trim().split(' ').filter(it => !!it)
-            ws.send(JSON.stringify({ command, args }))
             commands[command] && commands[command].action(args, system, () => {})
 
             if (needPsCommands.includes(command)) {
@@ -51,53 +62,16 @@ function init(system, commands) {
         });
 
     });
-}
 
-function parseTable(table) {
-    const [firstLine, ...splitted] = getFormattedLinesFromTable(table)
-    const columns = getColumnsFromLine(firstLine)
-    return getRowsFromTable(splitted, columns)
-
-}
-
-function getFormattedLinesFromTable(table) {
-    return table
-        .replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '') // Remove ANSI colors
-        .split('\n')
-}
-
-function getColumnsFromLine(line) {
-    const matches = line.replace(/\b\s\b/g, '-').match(/(\b[a-z-]+\s+)/g)
-    if (!matches) {
-        return line
-    }
-    return matches.map(it => ({
-        key: it.trim(),
-        length: it.length
-    }))
-}
-
-function getRowsFromTable(table, columns) {
-    return table.map(nextLine => {
-        let substringStart = 0
-
-        return columns.reduce((previous, current) => {
-            const result = {
-                ...previous,
-                [current.key]: nextLine
-                    .substring(substringStart, substringStart + current.length)
-                    .trim()
-            }
-            substringStart += current.length
-
-            return result
-        }, {})
-    })
+    server.listen(process.env.PORT || 3000, () => {
+        console.log(`Server started on port ${server.address().port}`);
+    });
 }
 
 function wrapCommands(commands, ws) {
     Object.entries(commands).forEach(([command, properties]) => {
         const action = properties.action
+        properties.originalAction = action
         properties.action = (args, system, cb) => {
             catchLog()
             action(args, system, cb)
@@ -110,33 +84,19 @@ function wrapCommands(commands, ws) {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify(result))
             } else {
-                console.log(JSON.stringify(result))
+                console.log('HERE', JSON.stringify(result))
             }
         }
     })
 }
 
-String.prototype.removeANSIColors = function() {
-    return this.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
-}
-
-String.prototype.safeMatch = function(regex) {
-    const matches = this.match(regex)
-    if (!matches) {
-        return []
-    }
-    return matches
-}
-
-JSON.tryParse = function(string) {
-    try {
-        return JSON.parse(string)
-    } catch (error) {
-        return string
-    }
+function unwrapCommands(commands) {
+    Object.entries(commands).forEach(([command, properties]) => {
+        properties.action = properties.originalAction
+        delete properties.originalAction
+    })
 }
 
 module.exports = {
     init
-
 }

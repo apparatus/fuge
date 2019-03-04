@@ -18,7 +18,7 @@
 var program = require('commist')()
 var shell = require('./shell')(true)
 var util = require('./util')()
-var webSocketServer = require('./webSocketServer')
+var webSocketServer = require('./server/webSocketServer')
 var commands
 
 function showVersion (args, system, cb) {
