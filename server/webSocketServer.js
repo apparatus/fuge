@@ -10,8 +10,13 @@ const { parseTable } = require('./utils/parser')
 const app = express()
 const server = http.createServer(app)
 
+const PROCESS_LOG_REGEX = /\[([a-z-]+)\s-\s(\d+)]:(.*)/
+const PROCESS_EXIT_STATUS_REGEX = /\[[a-zA-Z-]*\]\sexit\s-\sstatus:/
+const COMMAND_ARGS_REGEX = /([a-zA-Z-]+)\s?(.*)/
+
 const tableResultCommands = ['ps', 'zone']
 const needPsCommands = ['stop', 'start', 'restart']
+
 
 const originalStdoutWrite = process.stdout.write
 const originalStderrWrite = process.stderr.write
@@ -28,13 +33,13 @@ function init(system, commands) {
         process.stdout.write = (stream) => {
             const [ ,processName, pid, message ] = stream
                 .removeANSIColors()
-                .safeMatch(/\[([a-z-]+)\s-\s(\d+)]:(.*)/)
+                .safeMatch(PROCESS_LOG_REGEX)
 
             ws.send(JSON.stringify({ fugeId: 'root', processName, pid, message: JSON.tryParse(message) }));
         }
 
         process.stderr.write = (stream) => {
-            if (stream.match(/\[[a-zA-Z-]*\]\sexit\s-\sstatus:/)) {
+            if (stream.match(PROCESS_EXIT_STATUS_REGEX)) {
                 commands.ps.action([], system, () => {})
             }
         }
@@ -46,14 +51,13 @@ function init(system, commands) {
         })
 
         ws.on('message', function (message) {
-            let [, command, args] = message.match(/([a-zA-Z-]+)\s?(.*)/)
-            if (!command || !commands[command]) {
-                command = 'shell'
-            }
-            args = args.trim().split(' ').filter(it => !!it)
-            commands[command] && commands[command].action(args, system, () => {})
+            let [, commandName, args] = message.match(COMMAND_ARGS_REGEX)
+            const command = commands[commandName] || commands.shell
 
-            if (needPsCommands.includes(command)) {
+            args = args.trim().split(' ').filter(it => !!it)
+            command.action(args, system, () => {})
+
+            if (needPsCommands.includes(commandName)) {
                 setTimeout(() => commands.ps.action([], system, () => {}), 1000)
             }
         });
