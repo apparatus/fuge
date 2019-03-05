@@ -79,7 +79,7 @@ function init(system, commands) {
     }
 
     const handleOnConnectionClose = () => {
-        if (wss.clients.size > 1) {
+        if (wss.clients.size) {
             return
         }
 
