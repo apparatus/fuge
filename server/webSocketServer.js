@@ -49,10 +49,9 @@ function getPortFromSystem(system) {
 
 function wrapCommands(commands, wss) {
     Object.entries(commands).forEach(([command, properties]) => {
-        const action = properties.action
-        properties.originalAction = action
+        properties.originalAction = properties.action
         properties.action = (args, system, cb) => {
-            let result = catchLog(() => action(args, system, cb))
+            let result = catchLog(() => properties.originalAction(args, system, cb))
 
             if (tableResultCommands.includes(command)) {
                 result = parseTable(result)
@@ -64,7 +63,9 @@ function wrapCommands(commands, wss) {
 }
 
 function unwrapCommands(commands) {
-    Object.entries(commands).forEach(([command, properties]) => {
+    Object
+        .entries(commands)
+        .forEach(([command, properties]) => {
         properties.action = properties.originalAction
         delete properties.originalAction
     })
@@ -78,7 +79,7 @@ function init(system, commands) {
     }
 
     const handleOnConnectionClose = () => {
-        if (wss.clients.size) {
+        if (wss.clients.size > 1) {
             return
         }
 
@@ -87,12 +88,18 @@ function init(system, commands) {
         process.stderr.write = originalStderrWrite
     }
 
-    const handleOnMessage = (message) => {
+    const commandAndArgsFromMessage = (message) => {
         let [, commandName, args] = message.match(COMMAND_ARGS_REGEX)
         const command = commands[commandName] || commands.shell
 
         args = args.trim().split(' ').filter(it => !!it)
-        console.log('action')
+
+        return { commandName, command, args}
+    }
+
+    const handleOnMessage = (message) => {
+        const { commandName, command, args } = commandAndArgsFromMessage(message)
+
         command.action(args, system, () => {})
 
         if (needPsCommands.includes(commandName)) {
@@ -108,7 +115,7 @@ function init(system, commands) {
         ws.on('close', handleOnConnectionClose)
         ws.on('message', handleOnMessage)
         commands.ps.action([], system, () => {})
-        commands.shell.action(['docker-compose', 'ps'], system, () => {})
+        commands.shell.action(['docker-compose ps'], system, () => {})
     }
 
     wss.on('connection', handleNewConnection)
