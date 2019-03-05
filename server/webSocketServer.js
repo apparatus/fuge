@@ -90,16 +90,14 @@ function init(system, commands) {
 
     const commandAndArgsFromMessage = (message) => {
         let [, commandName, args] = message.match(COMMAND_ARGS_REGEX)
-        const command = commands[commandName] || commands.shell
-
         args = args.trim().split(' ').filter(it => !!it)
 
-        return { commandName, command, args}
+        return { commandName, args}
     }
 
     const handleOnMessage = (message) => {
-        const { commandName, command, args } = commandAndArgsFromMessage(message)
-
+        const { commandName, args } = commandAndArgsFromMessage(message)
+        const command = commands[commandName]
         command.action(args, system, () => {})
 
         if (needPsCommands.includes(commandName)) {
