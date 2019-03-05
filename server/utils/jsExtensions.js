@@ -1,5 +1,8 @@
+
+const ANSI_COLORS_REGEX = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
+
 String.prototype.removeANSIColors = function() {
-    return this.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    return this.replace(ANSI_COLORS_REGEX, '')
 }
 
 String.prototype.safeMatch = function(regex) {
