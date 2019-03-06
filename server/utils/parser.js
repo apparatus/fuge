@@ -1,6 +1,7 @@
 const ANSI_COLORS_REGEX = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
 const COLUM_SLASH_REGEX = /\b\s\b/g
 const TABLE_COLUMN_REGEX = /(\b[a-zA-Z-]+\b\s*)/g
+const COMMAND_ARGS_REGEX = /([a-zA-Z-]+)\s?(.*)/
 
 function parseTable(table) {
     const { header, body } = splitHeaderAndBody(table)
@@ -42,9 +43,17 @@ function getRowsFromTable(table, columns) {
     })
 }
 
+function commandAndArgsFromMessage(message) {
+    let [, commandName, args] = message.match(COMMAND_ARGS_REGEX)
+    args = args.trim().split(' ').filter(it => !!it)
+
+    return { commandName, args}
+}
+
 module.exports = {
     splitHeaderAndBody,
     getColumnsFromHeader,
     getRowsFromTable,
-    parseTable
+    parseTable,
+    commandAndArgsFromMessage
 }

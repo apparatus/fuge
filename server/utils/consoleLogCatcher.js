@@ -1,8 +1,8 @@
 module.exports = () => {
   let consoleLogResult = ''
 
-  const originalConsoleLog = console.log
-  const originalWrite = process.stdout.write
+  let originalConsoleLog
+  let originalWrite
 
   const consoleLogCatcher = (str) => {
     if (typeof str !== 'string') {
@@ -13,6 +13,9 @@ module.exports = () => {
   }
 
   const catchLog = () => {
+    originalConsoleLog = console.log
+    originalWrite = process.stdout.write
+
     console.log = consoleLogCatcher
     process.stdout.write = consoleLogCatcher
   }

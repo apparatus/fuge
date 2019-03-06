@@ -1,16 +1,31 @@
 const WebSocket = require('ws')
 const express = require('express')
 const http = require('http')
-
+const catchLog = require('./utils/consoleLogCatcher')()
+const { parseTable, commandAndArgsFromMessage } = require('./utils/parser')
 require('./utils/jsExtensions')
 
-const catchLog = require('./utils/consoleLogCatcher')()
-const { parseTable } = require('./utils/parser')
+
+
+
+/********************************************************************/
+var fs = require('fs');
+var util = require('util');
+var log_file = fs.createWriteStream(__dirname + '/debug.log', {flags : 'w'});
+var log_stdout = process.stdout;
+
+myLog = function(d) { //
+    log_file.write(util.format(d) + '\n');
+    //log_stdout.write(util.format(d) + '\n');
+};
+/********************************************************************/
+
+
+
 
 
 const PROCESS_LOG_REGEX = /\[([a-z-]+)\s-\s(\d+)]:(.*)/
 const PROCESS_EXIT_STATUS_REGEX = /\[[a-zA-Z-]*\]\sexit\s-\sstatus:/
-const COMMAND_ARGS_REGEX = /([a-zA-Z-]+)\s?(.*)/
 
 const tableResultCommands = ['ps', 'zone']
 const needPsCommands = ['stop', 'start', 'restart']
@@ -28,14 +43,21 @@ app.use('/', express.static(__dirname + '/public'))
 const originalStdoutWrite = process.stdout.write
 const originalStderrWrite = process.stderr.write
 
-wss.broadcast = message => wss.clients.forEach(client => client.send(message))
+wss.broadcast = function broadcast(msg) {
+    wss.clients.forEach(function each(client) {
+        client.send(msg);
+    });
+};
 
-process.stdout.write = (stream) => {
-    const [ ,processName, pid, message ] = stream
-        .removeANSIColors()
-        .safeMatch(PROCESS_LOG_REGEX)
+process.stdout.write = (chunk) => {
+    chunk = chunk.removeANSIColors().trim()
+    const [ ,processName, pid, message ] = chunk.safeMatch(PROCESS_LOG_REGEX)
 
-    wss.broadcast(JSON.stringify({ fugeId: 'root', processName, pid, message: JSON.tryParse(message) }))
+    if (processName) {
+        wss.broadcast(JSON.stringify({ fugeId: 'root', processName, pid, message: JSON.tryParse(message) }))
+    } else if (chunk.length > 1) {
+        wss.broadcast(JSON.stringify({ fugeId: 'root', processName: process.title, pid: process.pid, message: chunk }))
+    }
 }
 
 function getPortFromSystem(system) {
@@ -49,9 +71,10 @@ function getPortFromSystem(system) {
 
 function wrapCommands(commands, wss) {
     Object.entries(commands).forEach(([command, properties]) => {
-        properties.originalAction = properties.action
+        const action = properties.action
+        properties.originalAction = action
         properties.action = (args, system, cb) => {
-            let result = catchLog(() => properties.originalAction(args, system, cb))
+            let result = catchLog(() => action(args, system, cb))
 
             if (tableResultCommands.includes(command)) {
                 result = parseTable(result)
@@ -72,9 +95,20 @@ function unwrapCommands(commands) {
 }
 
 function init(system, commands) {
-    process.stderr.write = (stream) => {
-        if (stream.match(PROCESS_EXIT_STATUS_REGEX)) {
+
+    process.stderr.write = (chunk) => {
+        if (chunk.match(PROCESS_EXIT_STATUS_REGEX)) {
             commands.ps.action([], system, () => {})
+        }
+    }
+
+    const handleOnMessage = (message) => {
+        const { commandName, args } = commandAndArgsFromMessage(message)
+        const command = commands[commandName] || commands.shell
+        command.action(args, system, () => {})
+
+        if (needPsCommands.includes(commandName)) {
+            setTimeout(() => commands.ps.action([], system, () => {}), 1000)
         }
     }
 
@@ -86,23 +120,6 @@ function init(system, commands) {
         unwrapCommands(commands)
         process.stdout.write = originalStdoutWrite
         process.stderr.write = originalStderrWrite
-    }
-
-    const commandAndArgsFromMessage = (message) => {
-        let [, commandName, args] = message.match(COMMAND_ARGS_REGEX)
-        args = args.trim().split(' ').filter(it => !!it)
-
-        return { commandName, args}
-    }
-
-    const handleOnMessage = (message) => {
-        const { commandName, args } = commandAndArgsFromMessage(message)
-        const command = commands[commandName]
-        command.action(args, system, () => {})
-
-        if (needPsCommands.includes(commandName)) {
-            setTimeout(() => commands.ps.action([], system, () => {}), 1000)
-        }
     }
 
     const handleNewConnection = (ws) => {
