@@ -5,25 +5,6 @@ const catchLog = require('./utils/consoleLogCatcher')()
 const { parseTable, commandAndArgsFromMessage } = require('./utils/parser')
 require('./utils/jsExtensions')
 
-
-
-
-/********************************************************************/
-var fs = require('fs');
-var util = require('util');
-var log_file = fs.createWriteStream(__dirname + '/debug.log', {flags : 'w'});
-var log_stdout = process.stdout;
-
-myLog = function(d) { //
-    log_file.write(util.format(d) + '\n');
-    //log_stdout.write(util.format(d) + '\n');
-};
-/********************************************************************/
-
-
-
-
-
 const PROCESS_LOG_REGEX = /\[([a-z-]+)\s-\s(\d+)]:(.*)/
 const PROCESS_EXIT_STATUS_REGEX = /\[[a-zA-Z-]*\]\sexit\s-\sstatus:/
 
@@ -49,16 +30,7 @@ wss.broadcast = function broadcast(msg) {
     });
 };
 
-process.stdout.write = (chunk) => {
-    chunk = chunk.removeANSIColors().trim()
-    const [ ,processName, pid, message ] = chunk.safeMatch(PROCESS_LOG_REGEX)
 
-    if (processName) {
-        wss.broadcast(JSON.stringify({ fugeId: 'root', processName, pid, message: JSON.tryParse(message) }))
-    } else if (chunk.length > 1) {
-        wss.broadcast(JSON.stringify({ fugeId: 'root', processName: process.title, pid: process.pid, message: chunk }))
-    }
-}
 
 function getPortFromSystem(system) {
     const {global: {http_server}} = system
@@ -96,12 +68,6 @@ function unwrapCommands(commands) {
 
 function init(system, commands) {
 
-    process.stderr.write = (chunk) => {
-        if (chunk.match(PROCESS_EXIT_STATUS_REGEX)) {
-            commands.ps.action([], system, () => {})
-        }
-    }
-
     const handleOnMessage = (message) => {
         const { commandName, args } = commandAndArgsFromMessage(message)
         const command = commands[commandName] || commands.shell
@@ -118,12 +84,36 @@ function init(system, commands) {
         }
 
         unwrapCommands(commands)
+        releaseLogs()
+    }
+
+    const catchLogs = () => {
+        process.stdout.write = (chunk) => {
+            chunk = chunk.removeANSIColors().trim()
+            const [ ,processName, pid, message ] = chunk.safeMatch(PROCESS_LOG_REGEX)
+
+            if (processName) {
+                wss.broadcast(JSON.stringify({ fugeId: 'root', processName, pid, message: JSON.tryParse(message) }))
+            } else if (chunk.length > 1) {
+                wss.broadcast(JSON.stringify({ fugeId: 'root', processName: process.title, pid: process.pid, message: chunk }))
+            }
+        }
+
+        process.stderr.write = (chunk) => {
+            if (chunk.match(PROCESS_EXIT_STATUS_REGEX)) {
+                commands.ps.action([], system, () => {})
+            }
+        }
+    }
+
+    const releaseLogs = () => {
         process.stdout.write = originalStdoutWrite
         process.stderr.write = originalStderrWrite
     }
 
     const handleNewConnection = (ws) => {
         if (wss.clients && wss.clients.size === 1) {
+            catchLogs()
             wrapCommands(commands, wss)
         }
 
