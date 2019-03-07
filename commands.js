@@ -34,7 +34,6 @@ module.exports = function () {
     }
 
     var table = new CliTable({chars: tableChars, style: tableStyle, head: ['name'.white, 'type'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15]})
-
     _.each(system.topology.containers, function (container) {
       if (container.type === 'container' && system.global.run_containers === false) {
         table.push([container.name.gray, container.type.gray, 'not managed'.gray, '', ''])
@@ -64,7 +63,6 @@ module.exports = function () {
     console.log(table.toString())
     cb()
   }
-
 
   var showInfo = function (args, system, cb) {
     if (args.length > 0) {

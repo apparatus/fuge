@@ -1,0 +1,38 @@
+fuge_global:
+  run_containers: false
+  dns_enabled: true
+  dns_host: '127.0.0.1'
+  dns_port: 7140
+  dns_suffix: internal
+  dns_namespace: service
+  dns_external:
+    - 'acc-user-api.service.internal IN A 127.0.0.1'
+    - '_main._tcp.acc-user-api.service.internal IN SRV 0 5 7000 acc-user-api.service.internal'
+  tail: true
+  monitor: true
+  monitor_excludes:
+    - '**/node_modules/**'
+    - '**/.git/**'
+    - '*.log'
+    - '**/*.swp'
+    - '**/*.missing.json'
+  environment:
+    - "AWS_DEFAULT_REGION=eu-west-1"
+    - "AWS_ACCOUNT_ID=123456789012"
+    - "AWS_ACCESS_KEY_ID=foobar"
+    - "AWS_SECRET_ACCESS_KEY=foobar"
+  http_server:
+    port: 3000
+	forward_to_ports:
+		acc: 3002
+
+kyc-customer-sim:
+  type: process
+  run: "bash -c 'npm run sequelize db:migrate && node --inspect=7123 index.js | npx pino-pretty'"
+  path: ../../kyc/kyc-customer-sim
+  environment:
+    - "DB_URL=postgres://postgres:pass@localhost:7142/kyc-customer-sim"
+    - "CALLBACK_URL=http://127.0.0.1:7103/customer-simulator/"
+    - "KYC_PUBLIC_URL=https://127.0.0.1:7143/"
+  ports:
+    - main=7103

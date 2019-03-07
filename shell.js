@@ -74,9 +74,9 @@ module.exports = function (hardExit) {
           morp.displayPrompt()
         }
       } else {
-        command.action(args, system, function (err) {
+        command.action(args, system, function (err, result) {
           if (err) { console.log(err.red) }
-          if (!command.isExit) {
+          if (command.isExit) {
             morp.displayPrompt()
           }
         })
@@ -89,12 +89,16 @@ module.exports = function (hardExit) {
 
   function initCommands (system, runner, dns) {
     commands = cmds.init(system, runner, dns)
-    commands.exit = {action: stopSystem, description: 'exit fuge', isExit: true}
+    commands.exit = { action: stopSystem, description: 'exit fuge', isExit: true }
+    commands.shell = { action: cmds.shell, description: 'Execute any shell command'}
+
+    return commands
   }
 
 
   function run (sys, cb) {
     var rl
+    let commands = []
 
     system = sys
     runner = FugeRunner()
@@ -102,7 +106,7 @@ module.exports = function (hardExit) {
     if (system.global.dns_enabled) {
       console.log('starting fuge dns [' + system.global.dns_host + ':' + system.global.dns_port + ']..')
       dns = FugeDns({host: system.global.dns_host, port: system.global.dns_port})
-      initCommands(system, runner, dns)
+      commands = initCommands(system, runner, dns)
       dns.addZone(system.global.dns)
       dns.start(function () {
         console.log('starting shell..')
@@ -110,11 +114,13 @@ module.exports = function (hardExit) {
         cb && cb(rl)
       })
     } else {
-      initCommands(system, runner, dns)
+      commands = initCommands(system, runner, dns)
       console.log('starting shell..')
       rl = repl()
       cb && cb(rl)
     }
+
+    return commands
   }
 
 
