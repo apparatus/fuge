@@ -24,7 +24,6 @@ var util = require('./util')()
 require('colors')
 
 
-
 module.exports = function () {
   var _runner = null
   var _dns = null
@@ -43,7 +42,6 @@ module.exports = function () {
     }
 
     var table = new CliTable({chars: tableChars, style: tableStyle, head: ['name'.white, 'type'.white, 'group'.white, 'status'.white, 'watch'.white, 'tail'.white], colWidths: [30, 15, 15, 15, 15, 15]})
-
 
     _.each(system.topology.containers, function (container) {
       if (!container.group) { container.group = 'default' }
@@ -394,10 +392,10 @@ module.exports = function () {
       var list = _dns.listRecords()
       _.each(list, function (entry) {
         if (entry.record._type === 'A') {
-          table.push(['A'.white, entry.domain.white, entry.record.target.white, '-'.white])
+          table.push(['A'.white, entry.domain.substring(0, 59).white, entry.record.target.substring(0, 59).white, '-'.white])
         }
         if (entry.record._type === 'SRV') {
-          table.push(['SRV'.white, entry.domain.white, entry.record.target.white, entry.record.port.white])
+          table.push(['SRV'.white, entry.domain.substring(0, 59).white, entry.record.target.substring(0, 59).white, entry.record.port.white])
         }
       })
       console.log(table.toString())

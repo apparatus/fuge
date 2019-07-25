@@ -18,6 +18,8 @@ var async = require('async')
 var runner = require('./helpers/runner')()
 var assert = require('assert')
 
+// wrap in tap test
+
 var scenarios = {
   ps: {cmds: ['ps'], expect: [/runme.*node.*stopped.*no.*yes/g, /runmetoo.*process.*stopped.*no.*yes/g]},
   info: {cmds: ['info runme', 'info runmetoo full'], expect: [/node runme/g, /RUNME_SERVICE_PORT=8000/g]},

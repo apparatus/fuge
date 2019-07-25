@@ -51,7 +51,7 @@ module.exports = function () {
 
 
 
- // array of container names that have been changed in yml file
+  // array of container names that have been changed in yml file
   var findChanged = function (changedProcesses, currentYmlConfig, newYmlConfig, cb) {
     changedProcesses = []
     var isGlobal = false
