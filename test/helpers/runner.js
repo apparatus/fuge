@@ -31,7 +31,7 @@ module.exports = function () {
       if (err) { console.error(err); return cb(err) }
       shell.run(system, function (readl) {
         rl = readl
-        setTimeout(cb, 500)
+        setTimeout(cb, 100)
       })
     })
   }
@@ -55,13 +55,14 @@ module.exports = function () {
       if (command.delay) {
         setTimeout(next, command.delay)
       } else {
-        setTimeout(next, 100)
+        setTimeout(next, 300)
       }
     }, function () {
       var result = false
       var count = 0
 
       captured.split('\n').forEach(function (line) {
+
         command.expect.forEach(function (re) {
           if (re.test(line)) {
             count++
@@ -77,7 +78,7 @@ module.exports = function () {
 
   function runSingle (cmd, cb) {
     shell.runSingleCommand(sys, cmd)
-    setTimeout(cb, 500)
+    setTimeout(cb, 100)
   }
 
 

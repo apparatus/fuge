@@ -47,8 +47,8 @@ module.exports = function (hardExit) {
 
 
   function initCrashHandler (system) {
-    // death({uncaughtException: true})(function (signal, err) {
-    death({uncaughtException: false})(function (signal, err) {
+    death({uncaughtException: true})(function (signal, err) {
+    // death({uncaughtException: false})(function (signal, err) {
       console.log('ERROR: '.red)
       console.log(('' + signal).red)
       if (err) { console.log(err.red) }
