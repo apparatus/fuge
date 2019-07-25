@@ -42,6 +42,7 @@ var scenarios = {
 
 runner.start('system.yml', function () {
   async.eachSeries(Object.keys(scenarios), function (key, next) {
+    console.log('----------[ command: ' + key + ' ]----------')
     runner.run(scenarios[key], function (result, output) {
       assert(result, 'check ' + key + ' results as expected')
       next()

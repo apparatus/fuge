@@ -16,10 +16,6 @@
 
 var _ = require('lodash')
 var CliTable = require('cli-table')
-var fs = require('fs')
-var yaml = require('js-yaml')
-var fcfgI = require('fuge-config/index')()
-var fcfgEv = require('fuge-config/environment')()
 var util = require('./util')()
 require('colors')
 
@@ -30,11 +26,6 @@ module.exports = function () {
 
   var tableChars = { 'top': '', 'top-mid': '', 'top-left': '', 'top-right': '', 'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '', 'left': '', 'left-mid': '', 'mid': '', 'mid-mid': '', 'right': '', 'right-mid': '', 'middle': '' }
   var tableStyle = { 'padding-left': 0, 'padding-right': 0 }
-
-  var currentYmlConfig
-  var newYmlConfig = {}
-  var changedProcesses = []
-
 
   var psList = function (args, system, cb) {
     if (args.length > 0) {
@@ -416,11 +407,6 @@ module.exports = function () {
   }
 
 
-  var pApplyCommand = function (args, system, cb) {
-    _runner.papply(system, args.join(' '), cb)
-  }
-
-
   var showHelp = function (args, system, cb) {
     var table = new CliTable({chars: tableChars, style: tableStyle, colWidths: [10, 100]})
     console.log('available commands:')
@@ -468,103 +454,11 @@ module.exports = function () {
     test: {action: testRepositories, sub: [], description: 'performs a test command for all artifacts with a defined test setting,\n usage: test <process> | <group> | all'},
     status: {action: statRepositories, sub: [], description: 'performs a git status and git branch command for all artifacts with a\n defined repository_url setting, usage: status <process> | <group> | all'},
     apply: {action: applyCommand, sub: [], description: 'apply a shell command to all processes'},
-    papply: {action: pApplyCommand, sub: [], description: 'apply a shell command to all processes asynchronously'},
-    rel: {action: findChangedProcesses, sub: [], description: 'reload process envs after fuge.yml config change. usage: rel'},
-    y: {action: rebuild, sub: [], description: 'accept config changes and reload'},
-    n: {action: noReload, sub: [], description: 'cancel reload'},
-    setval: {action: setEnvVar, sub: [], description: 'change a config value in memory. usage:\n To see all values: setval <process> \n To see single value: setval <process> <variable> \n To set value: setval <process> <variable> <value>. \n To set env value: setval <process> env <variable> <value>. \n '},
     help: {action: showHelp, description: 'show help on commands'}
   }
 
 
-
-  function noReload () {
-    console.log('no action taken')
-  }
-
-
-
-  // save the initial yml config at startup to compare to a changed yml
-  function initConfig () {
-    var path = process.env.yamlPath
-    try {
-      currentYmlConfig = yaml.safeLoad(fs.readFileSync(path, 'utf8'))
-    } catch (ex) {
-      console.log(ex)
-    }
-  }
-
-
-
-  // array of container names that have been changed in yml file
-  function findChangedProcesses () {
-    changedProcesses = util.findChanged(changedProcesses, currentYmlConfig, newYmlConfig, function (err, system) {
-      if (err) { return console.error(err) }
-    })
-  }
-
-
-
-  function rebuild (args, system, cb) {
-    _.each(system.topology.containers, function (container) {
-      if (_.includes(changedProcesses, container.name)) {
-        reRun(system, container, cb)
-      }
-    })
-  }
-
-
-
-  function reRun (system, container, cb) {
-    var logPath
-    if (_runner.isProcessRunning(system, container.name)) {
-      _runner.stop(system, container.name, function () {
-        singleLoad(logPath, system, container, function () {
-          if (_dns) { _dns.addZone(system.global.dns) }
-          _runner.start(system, container.name, cb)
-        })
-      })
-    } else {
-      singleLoad(logPath, system, container, cb)
-      if (_dns) { _dns.addZone(system.global.dns) }
-    }
-  }
-
-
-
-  function singleLoad (logPath, system, container, cb) {
-    fcfgI.reload(system, container, function (err, system) {
-      if (err) { return cb(err) }
-      system.global.log_path = logPath
-      cb(err, system)
-    })
-
-  }
-
-
-
-  function setEnvVar (args, system, cb) {
-    if (args.length === 1 || args.length === 2) {
-      fcfgEv.setEnvVariable(args, system, cb)
-    } else
-    if (args.length === 3 || args.length === 4) {
-      if (_runner.isProcessRunning(system, args[0])) {
-        _runner.stop(system, args[0], function () {
-          fcfgEv.setEnvVariable(args, system, function () {
-            _runner.start(system, args[0], cb)
-          })
-        })
-      } else {
-        fcfgEv.setEnvVariable(args, system, cb)
-      }
-    } else { console.log('usage: command: <process name>  env(only for KUBE)  <variable>  <new value>') }
-
-  }
-
-
-
   function init (system, runner, dns) {
-    initConfig()
     _runner = runner
     _dns = dns
     util.isDisabled(system)
