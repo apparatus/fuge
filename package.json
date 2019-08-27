@@ -46,6 +46,7 @@
     "coverage": "istanbul cover test/*.test.js && open ./coverage/lcov-report/index.html"
   },
   "devDependencies": {
+    "async": "^2.6.0",
     "istanbul": "^0.4.5",
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.10",

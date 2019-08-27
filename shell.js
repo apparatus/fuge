@@ -33,14 +33,31 @@ module.exports = function (hardExit) {
   var commands
 
 
+  function shellOnExitCommand (command, system, cb) {
+    cb = cb || function () {}
+    return cmds.shell(command, system, cb)
+  }
+
   function stopSystem (args, system, cb) {
+    var onExitCommand = system.global.onExit || false
     runner.stopAll(system, function () {
       if (dns) { dns.stop() }
       if (morp) { morp.stop() }
       if (hardExit) {
-        process.exit(0)
+        if (onExitCommand) {
+          return shellOnExitCommand(onExitCommand, system, function () {
+            process.exit(0)
+          })
+        }
+        return process.exit(0)
       } else {
-        cb && cb()
+        if (onExitCommand && cb) {
+          return shellOnExitCommand(onExitCommand, system, cb)
+        } else if (onExitCommand && !cb) {
+          return shellOnExitCommand(onExitCommand, system)
+        } else if (cb) {
+          cb()
+        }
       }
     })
   }
